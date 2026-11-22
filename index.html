@@ -30,7 +30,7 @@
    không phải mô phỏng ứng suất vật liệu hay bản rập chế tạo.
    ================================================================ */
 const BOOK_CONFIG = {
-  initialPage: 1,
+  initialPage: 0,
   cover: { title: 'BÌA SÁCH', text: 'VỊ TRÍ TÊN SÁCH', texture: null },
   end: { title: 'TRANG CUỐI', text: 'VỊ TRÍ NỘI DUNG CUỐI', texture: null },
   scenes: [
@@ -1262,7 +1262,7 @@ function start(to,manual=false){
 }
 function goTo(to){start(to,false)}
 function finishTurn(tr){
- current=tr.target===1?tr.to:tr.from;bookAngle=spreads[current].kind==='scene'?OPEN:0;phi=bookAngle;
+ current=tr.target===1?tr.to:tr.from;if(pages[current].kind==='end')current=0;bookAngle=spreads[current].kind==='scene'?OPEN:0;phi=bookAngle;
  transition=null;turnLeaf.visible=false;turnAngle=0;backPivot.visible=true;
  applyPage(current);backPivot.rotation.x=PI/2-bookAngle;setUI();$('status').textContent=pages[current].title;
 }
@@ -1282,7 +1282,7 @@ function updateTransition(dt){
    const chosen=next.kind==='scene'?next:old.kind==='scene'?old:(p<.5?old:next);
    spreads.forEach(s=>s.group.visible=s===chosen);chosen.group.rotation.x=0;chosen.group.position.y=0;
    backdrop.material=[chosen.bgMat,edgeMat];base.material=[chosen.baseMat,edgeMat];
-   backCover.material=[(next.kind==='scene'?old:next).bgMat,edgeMat];
+   backCover.material=[(next.kind==='scene'?old:next.kind==='end'?spreads[0]:next).bgMat,edgeMat];
    liveSpreads=[{spread:chosen,angle:bookAngle,height:.40,z:0}];turnLeaf.visible=false;
  }else{
    bookAngle=OPEN;phi=OPEN; // Invariant: turning a spread NEVER closes the book.
@@ -1530,7 +1530,7 @@ function runFlatBook(){
    const chosen=next.kind==='scene'?next:old.kind==='scene'?old:(m.p<.5?old:next);
    rigs.forEach(r=>r.group.visible=r===chosen&&r.kind==='scene');visibleRigs=[{rig:chosen,beta:openAngle,rotation:0}];
    rightPage.material=[edgeMat,edgeMat,chosen.right,chosen.right,edgeMat,edgeMat];leftPage.material=[edgeMat,edgeMat,chosen.left,chosen.left,edgeMat,edgeMat];
-   coverL.material=[coverMat,coverMat,(next.kind==='scene'?old:next).cover,coverMat,coverMat,coverMat];movingPage.visible=false;
+   coverL.material=[coverMat,coverMat,(next.kind==='scene'?old:next.kind==='end'?rigs[0]:next).cover,coverMat,coverMat,coverMat];movingPage.visible=false;
   }else{
    openAngle=PI;leftStack.rotation.z=PI;leftStack.position.y=0;theta=PI*(m.direction>0?m.p:1-m.p);
    const rightRig=m.direction>0?next:old,leftRig=m.direction>0?old:next;
@@ -1541,7 +1541,7 @@ function runFlatBook(){
    rightPage.material=[edgeMat,edgeMat,rightRig.right,rightRig.right,edgeMat,edgeMat];leftPage.material=[edgeMat,edgeMat,leftRig.left,leftRig.left,edgeMat,edgeMat];
    movingPage.material=[edgeMat,edgeMat,leftRig.right,rightRig.left,edgeMat,edgeMat];movingPage.visible=true;flexibleLeaf();
   }
-  if(!m.manual&&m.time>=m.duration){index=m.target===1?m.to:m.from;motion=null;openAngle=rigs[index].kind==='scene'?PI:0;leftStack.rotation.z=openAngle;leftStack.position.y=openAngle===0?.40:0;movingPage.visible=false;show(index);ui();$('status').textContent=entries[index].title;}
+  if(!m.manual&&m.time>=m.duration){index=m.target===1?m.to:m.from;if(entries[index].kind==='end')index=0;motion=null;openAngle=rigs[index].kind==='scene'?PI:0;leftStack.rotation.z=openAngle;leftStack.position.y=openAngle===0?.40:0;movingPage.visible=false;show(index);ui();$('status').textContent=entries[index].title;}
  }
  function resetView(){
   const aspect=stage.clientWidth/stage.clientHeight,r=Math.max(15,5.15/(Math.tan(PI/9)*aspect));
