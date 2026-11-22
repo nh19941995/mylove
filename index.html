@@ -1172,6 +1172,31 @@ function material(color,map=null,trans=false){return new T.MeshStandardMaterial(
 const edgeMat=material(THEME.edge),plain=material(THEME.paper),coverMat=material(THEME.cover);
 function sheet(w,h,mat,th=THICK){const mesh=new T.Mesh(paperGeometry(w,h,th),[mat,edgeMat]);mesh.castShadow=true;mesh.receiveShadow=true;return mesh;}
 const table=new T.Mesh(new T.PlaneGeometry(200,200),material(THEME.table));table.rotation.x=-PI/2;table.receiveShadow=true;scene.add(table);
+// Fade only construction meshes. Each rig owns its cloned materials; page,
+// cover and neighbouring scene materials must never inherit this opacity.
+function oldLayerOpacity(progress){const t=Math.max(0,Math.min(1,progress/.70));return 1-t*t*(3-2*t);}
+function fadeConstruction(group,opacity){
+ let state=group.userData.layerFade;
+ if(!state){
+  const clones=new Map(),materials=[],uniform={value:1};
+  const own=original=>{if(clones.has(original))return clones.get(original);const copy=original.clone();clones.set(original,copy);materials.push({material:copy,opacity:copy.opacity,transparent:copy.transparent,depthWrite:copy.depthWrite});return copy;};
+  group.traverse(object=>{
+   if(object.material)object.material=Array.isArray(object.material)?object.material.map(own):own(object.material);
+   if(object.isMesh&&object.castShadow){
+    const depth=object.customDepthMaterial?object.customDepthMaterial.clone():new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,side:THREE.DoubleSide});
+    const previous=object.customDepthMaterial?.onBeforeCompile;
+    depth.onBeforeCompile=shader=>{if(previous)previous(shader);shader.uniforms.uConstructionOpacity=uniform;shader.fragmentShader='uniform float uConstructionOpacity;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <alphatest_fragment>','#include <alphatest_fragment>\nif (fract(sin(dot(gl_FragCoord.xy, vec2(41.37,19.73))) * 15731.743) > uConstructionOpacity) discard;');};
+    depth.customProgramCacheKey=()=>previous?'construction-fade-translucent-v1':'construction-fade-v1';object.customDepthMaterial=depth;
+   }
+  });state=group.userData.layerFade={materials,uniform,opacity:-1};
+ }
+ if(state.opacity!==opacity){
+  for(const entry of state.materials){const m=entry.material,transparent=entry.transparent||opacity<1;if(m.transparent!==transparent){m.transparent=transparent;m.needsUpdate=true;}m.opacity=entry.opacity*opacity;m.depthWrite=entry.depthWrite&&opacity>=1;}
+  state.uniform.value=opacity;state.opacity=opacity;
+ }
+ if(opacity<=0)group.visible=false;
+}
+
 function installSettings(getCurrent,isBusy){
 BOOK_CONFIG.scenes.forEach((s,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=s.title;$('settingScene').append(option);});
 function refreshSettingOutputs(){
@@ -1232,14 +1257,14 @@ const spreads=pages.map((s,index)=>{
    const tx=texture(l.texture,(ctx,w,h)=>{ctx.fillStyle=l.color||THEME.placeholder[i%THEME.placeholder.length];ctx.fillRect(0,0,w,h);ctx.strokeStyle='#ffffff80';ctx.lineWidth=3;ctx.strokeRect(30,30,w-60,h-60);ctx.fillStyle=THEME.ink;textBlock(ctx,l.name||`LỚP ${i+1}`,60,h*.30,w-120,h*.5,110,true);});
    const face=material('#ffffff',tx,!!l.translucent),panel=sheet(width,height,face);panel.renderOrder=l.translucent?10+i:0;
    if(l.translucent){panel.customDepthMaterial=new T.MeshDepthMaterial({depthPacking:T.RGBADepthPacking,side:T.DoubleSide});panel.customDepthMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <alphatest_fragment>','#include <alphatest_fragment>\nif (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898,78.233))) * 43758.5453) > 0.62) discard;');};}hinge.add(panel);
-   const tabH=clamp(l.tabHeight||.2,.1,.4),tab=sheet(width*.65,tabH,plain,.012);tab.rotation.x=PI/2;tab.position.set(x,.024,depth-tabH);group.add(tab);
-   const riser=sheet(width*.65,1,plain,.012);bar(riser,new T.Vector3(x,.028,depth-tabH*.5),new T.Vector3(x,y,depth));group.add(riser);
+   const tabH=clamp(l.tabHeight||.2,.1,.4),tab=sheet(width*.5,tabH,plain,.012);tab.rotation.x=PI/2;tab.position.set(x,.024,depth-tabH-.06);group.add(tab);
+   const riser=sheet(width*.5,1,plain,.012);bar(riser,new T.Vector3(x,.028,depth-tabH*.5-.06),new T.Vector3(x,y+.06,depth-.025));group.add(riser);
    // Two scored strips form a V gusset. The remote anchor is physically
    // attached to the turning back leaf, not to an invisible world position.
    const r=Math.min(height*.52,.72),linkLength=Math.hypot(depth,Math.max(y,.40-y))+.020;
    const links=[];for(const side of [-1,1]){const a=sheet(.10,1,plain,.012),b=sheet(.10,1,plain,.012);group.add(a,b);links.push({a,b,x:x+side*width*.29});}
    const shadow=new T.Mesh(new T.PlaneGeometry(width*1.15,.6),contactMat);shadow.rotation.x=-PI/2;shadow.position.set(x,.024,depth+.10);group.add(shadow);
-   return {config:l,width,height,depth,x,y,hinge,panel,links,r,linkLength,shadow,objects:[hinge,tab,riser,...links.flatMap(p=>[p.a,p.b])],angle:0,velocity:0,target:0};
+   return {config:l,width,height,depth,x,y,hinge,panel,links,r,riser,tabH,linkLength,shadow,objects:[hinge,tab,riser,...links.flatMap(p=>[p.a,p.b])],angle:0,velocity:0,target:0};
  });
  return {group,layers,bg,bgMat:material('#ffffff',bg),baseMat:material('#ffffff',pageTex),kind:s.kind,title:s.title};
 });
@@ -1391,6 +1416,7 @@ function renderLayers(){
    const exposed=!context.ceiling||context.angle>=PI/2||context.height+l.depth*Math.tan(context.angle)>l.y+.025;
    l.objects.forEach(object=>object.visible=exposed);
    l.hinge.rotation.x=PI/2-l.angle;
+   if(l.riser)bar(l.riser,new T.Vector3(l.x,.028,l.depth-l.tabH*.5-.06),new T.Vector3(l.x,l.y+.06*Math.sin(l.angle)+.025*Math.cos(l.angle),l.depth+.06*Math.cos(l.angle)-.025*Math.sin(l.angle)));
    for(const pair of l.links){
      linkA.set(pair.x,context.height+l.r*Math.sin(context.angle),context.z+l.r*Math.cos(context.angle));
      linkB.set(pair.x,l.y+l.r*Math.sin(l.angle),l.depth+l.r*Math.cos(l.angle));
@@ -1421,7 +1447,7 @@ $('corner').addEventListener('pointerdown',dragStart);$('corner').addEventListen
 renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-r.left-22,e.clientY-r.top-22)<55)dragStart(e)},true);
 renderer.domElement.addEventListener('pointermove',dragMove);renderer.domElement.addEventListener('pointerup',e=>dragEnd(e));renderer.domElement.addEventListener('pointercancel',e=>dragEnd(e,true));
 function wake(){settledFrames=0;if(!document.hidden&&!raf){lastTime=performance.now();raf=requestAnimationFrame(tick)}}
-function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}if(pendingGeometry&&turnLeaf.visible)deformPage();renderLayers();controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';stage.dataset.bookAngle=bookAngle.toFixed(6);stage.dataset.turnAngle=turnAngle.toFixed(6);stage.dataset.engine='single-leaf-v2';
+function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}if(pendingGeometry&&turnLeaf.visible)deformPage();renderLayers();for(const s of spreads)fadeConstruction(s.group,transition&&s===spreads[transition.from]?oldLayerOpacity(transition.p):1);controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';stage.dataset.bookAngle=bookAngle.toFixed(6);stage.dataset.turnAngle=turnAngle.toFixed(6);stage.dataset.engine='single-leaf-v2';
  // Adaptive resolution keeps the 2048 shadow map and reduces fill cost first.
  if(frameCount>120&&frameTime/frameCount>1/43&&renderer.getPixelRatio()>1){renderer.setPixelRatio(Math.max(1,renderer.getPixelRatio()-.25));renderer.setSize(stage.clientWidth,stage.clientHeight);frameCount=0;frameTime=0;}
  const moving=transition||drag||liveSpreads.some(c=>c.spread.layers.some(l=>Math.abs(l.velocity)>.002||Math.abs(l.angle-l.target)>.002));
@@ -1506,7 +1532,7 @@ function runFlatBook(){
     posePanel(l.wings[side],directions[side],fold.crease,position,l.lengths[side],side,.016);
     const pageAngle=rotation+(side===0?beta:0),radial=new T.Vector3(Math.cos(pageAngle),Math.sin(pageAngle),0);
     const tabAcross=new T.Vector3().crossVectors(new T.Vector3(-Math.sin(pageAngle),Math.cos(pageAngle),0),directions[side]).normalize();
-    if(tabAcross.dot(radial)<0)tabAcross.negate();posePanel(l.tabs[side],directions[side],tabAcross,position,l.lengths[side],side);
+    if(tabAcross.z>0)tabAcross.negate();posePanel(l.tabs[side],directions[side],tabAcross,position,l.lengths[side],side);
    }
    const p=l.seam.geometry.attributes.position;p.setXYZ(0,position.x,position.y,position.z);p.setXYZ(1,position.x+l.height*fold.crease.x,position.y+l.height*fold.crease.y,position.z+l.height*fold.crease.z);p.needsUpdate=true;
    l.shadow.visible=beta>PI*.75&&Math.abs(rotation)<.01;
@@ -1575,7 +1601,7 @@ function runFlatBook(){
  $('corner').addEventListener('pointerdown',down);$('corner').addEventListener('pointermove',move);$('corner').addEventListener('pointerup',e=>up(e));$('corner').addEventListener('pointercancel',e=>up(e,true));$('corner').onclick=e=>{if(e.detail===0)begin(index===entries.length-1?index-1:index+1)};
  renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-r.left-22,e.clientY-r.top-22)<52)down(e)},true);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',e=>up(e));renderer.domElement.addEventListener('pointercancel',e=>up(e,true));
  function wakeFlat(){idle=0;if(!document.hidden&&!frame){last=performance.now();frame=requestAnimationFrame(tickFlat)}}
- function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);controls.update();
+ function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);for(const r of rigs)fadeConstruction(r.group,motion&&r===rigs[motion.from]?oldLayerOpacity(motion.p):1);controls.update();
   const point=motion&&!motion.cover?movingTip.clone():new T.Vector3(PW-.1,.1,D-.1);book.localToWorld(point);point.project(camera);
   $('corner').style.transform=`translate(${clamp((point.x*.5+.5)*stage.clientWidth-22,4,stage.clientWidth-48)}px,${clamp((-point.y*.5+.5)*stage.clientHeight-22,4,stage.clientHeight-48)}px)`;$('corner').style.visibility=motion&&!held?'hidden':'visible';
   stage.dataset.engine='vfold-180-v1';stage.dataset.bookAngle=openAngle.toFixed(6);stage.dataset.turnAngle=theta.toFixed(6);stage.dataset.progress=motion?motion.p.toFixed(4):'idle';stage.dataset.layers=String(currentRig.layers.length);
@@ -1586,7 +1612,7 @@ function runFlatBook(){
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(frame);frame=0;fail('Kết nối đồ họa bị gián đoạn. Hãy tải lại trang để tiếp tục.');});
  window.addEventListener('resize',resizeFlat);show(index);leftStack.position.y=openAngle===0?.40:0;setTheme();ui();resizeFlat();wakeFlat();
  // Local preview only: freeze a real transition for geometric and visual QA.
- if(location.hostname==='127.0.0.1'&&new URLSearchParams(location.search).has('flatInspect')){begin(Math.min(index+1,entries.length-2),true);if(motion)motion.p=motion.input=clamp(Number(new URLSearchParams(location.search).get('flatInspect')),0,1);}
+ if(location.hostname==='127.0.0.1'&&new URLSearchParams(location.search).has('flatInspect')){index=1;openAngle=PI;show(index);begin(Math.min(index+1,entries.length-2),true);if(motion)motion.p=motion.input=clamp(Number(new URLSearchParams(location.search).get('flatInspect')),0,1);}
 }
 
 })();
