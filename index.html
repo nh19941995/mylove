@@ -17,7 +17,7 @@
  <footer><button id="prev" aria-label="Lật về trang trước">Trang trước</button><div class="pager"><div id="pages" aria-label="Chọn trang"></div><span id="count"></span></div><button id="next" aria-label="Lật sang trang tiếp theo">Trang tiếp</button></footer>
  <div id="status" role="status" aria-live="polite"></div>
 </div>
-<dialog id="layerSettings" class="settings-dialog" aria-labelledby="settingsTitle"><button id="closeSettings" class="settings-close" aria-label="Đóng cài đặt">×</button><h2 id="settingsTitle">Bố trí lớp giấy</h2><label for="settingScene">Cảnh áp dụng</label><select id="settingScene"></select><label for="layerCount">Số lớp <output id="countOutput" for="layerCount"></output></label><input id="layerCount" type="range" min="1" max="8" step="1"><label for="layerGap">Khoảng cách giữa các lớp <output id="gapOutput" for="layerGap"></output></label><input id="layerGap" type="range" min="0.75" max="5" step="0.05"><p id="spacingHint">Khoảng cách được đo dọc trang, từ gáy về phía trước.</p><p>Cài đặt được lưu riêng cho từng cảnh trên trình duyệt này. Các lớp thêm mới dùng hình giữ chỗ.</p><p id="settingsStatus" role="status" aria-live="polite"></p><div class="settings-actions"><button id="resetLayers">Mặc định</button><button id="applyLayers" class="primary">Áp dụng</button></div></dialog>
+<dialog id="layerSettings" class="settings-dialog" aria-labelledby="settingsTitle"><button id="closeSettings" class="settings-close" aria-label="Đóng cài đặt">×</button><h2 id="settingsTitle">Bố trí lớp giấy</h2><label for="openingMode">Kiểu mở sách</label><select id="openingMode"><option value="90">90° — trang sau dựng đứng</option><option value="180">180° — hai trang mở phẳng</option></select><p id="mechanismHint"></p><label for="settingScene">Cảnh áp dụng</label><select id="settingScene"></select><label for="layerCount">Số lớp <output id="countOutput" for="layerCount"></output></label><input id="layerCount" type="range" min="1" max="8" step="1"><label for="layerGap">Khoảng cách giữa các lớp <output id="gapOutput" for="layerGap"></output></label><input id="layerGap" type="range" min="0.75" max="5" step="0.05"><p id="spacingHint">Khoảng cách được đo dọc trang, từ gáy về phía trước.</p><p>Cài đặt được lưu riêng cho từng cảnh trên trình duyệt này. Các lớp thêm mới dùng hình giữ chỗ.</p><p id="settingsStatus" role="status" aria-live="polite"></p><div class="settings-actions"><button id="resetLayers">Mặc định</button><button id="applyLayers" class="primary">Áp dụng</button></div></dialog>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ================================================================
@@ -62,9 +62,11 @@ const THEME = {
 };
 // Browser overrides are separate from authored content and never change textures.
 const SETTINGS_KEY='popup-book-layer-layout-v2';
+const MODE_KEY='popup-book-opening-mode-v1';
+let BOOK_MODE='90';try{if(localStorage.getItem(MODE_KEY)==='180')BOOK_MODE='180';}catch(e){}
 const DEFAULT_LAYOUTS=BOOK_CONFIG.scenes.map(s=>({layers:s.layers.map(l=>({...l}))}));
 let savedLayouts={};try{savedLayouts=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')||{};}catch(e){}
-function maxGapCm(count){return count<2?5:Math.min(5,Math.floor(13.25/(count-1)*20)/20);}
+function maxGapCm(count,mode=BOOK_MODE){return count<2?5:Math.min(5,Math.floor((mode==='180'?8.5:13.25)/(count-1)*20)/20);}
 BOOK_CONFIG.scenes.forEach((s,index)=>{
  const saved=savedLayouts[index];if(!saved||!Number.isFinite(Number(saved.count))||!Number.isFinite(Number(saved.gap)))return;
  const count=Math.max(1,Math.min(8,Math.round(Number(saved.count)))),gap=Math.max(.75,Math.min(maxGapCm(count),Number(saved.gap)))/5;
@@ -1132,8 +1134,9 @@ const fail=message=>{$('error').style.display='grid';$('error').firstElementChil
 if(!window.THREE){fail('Không tải được thư viện 3D. Hãy kiểm tra kết nối mạng và tải lại trang.');return;}
 let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}catch(e){fail('Thiết bị hoặc trình duyệt chưa hỗ trợ WebGL. Hãy thử bật tăng tốc phần cứng hoặc dùng trình duyệt khác.');return;}
 const T=THREE, clamp=T.MathUtils.clamp, lerp=T.MathUtils.lerp, PI=Math.PI;
+let renderRequest=()=>{};function requestRender(){renderRequest();}
 const reducedQuery=matchMedia('(prefers-reduced-motion: reduce)');let reduced=reducedQuery.matches;
-reducedQuery.addEventListener('change',e=>{reduced=e.matches;controls.enableDamping=!reduced;wake()});
+reducedQuery.addEventListener('change',e=>{reduced=e.matches;controls.enableDamping=!reduced;requestRender()});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputEncoding=T.sRGBEncoding;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.90;
 renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','Sách pop-up 3D. Dùng phím mũi tên trái, phải để chuyển trang.');stage.prepend(renderer.domElement);
 const scene=new T.Scene(), camera=new T.PerspectiveCamera(40,1,.1,100);
@@ -1149,11 +1152,39 @@ function canvasTexture(draw,w=1024,h=768){const c=document.createElement('canvas
 const noise=canvasTexture((ctx,w,h)=>{const a=ctx.createImageData(w,h);let seed=13579;for(let i=0;i<a.data.length;i+=4){seed=(seed*16807)%2147483647;const n=125+(seed%28);a.data[i]=a.data[i+1]=a.data[i+2]=n;a.data[i+3]=255;}ctx.putImageData(a,0,0)},128,128);noise.encoding=T.LinearEncoding;noise.wrapS=noise.wrapT=T.RepeatWrapping;noise.repeat.set(3,3);
 function wrap(ctx,text,width){const lines=[];for(const para of String(text||'').split('\n')){let line='';for(const word of para.split(/\s+/)){const test=line?line+' '+word:word;if(ctx.measureText(test).width>width&&line){lines.push(line);line=word;}else line=test;}lines.push(line);}return lines;}
 function textBlock(ctx,text,x,y,width,height,size=30,center=false){let lines;do{ctx.font=`${size}px ${THEME.font}`;lines=wrap(ctx,text,width);if(lines.length*size*1.45<=height)break;size--;}while(size>12);ctx.textAlign=center?'center':'left';ctx.textBaseline='top';lines.forEach((l,i)=>{if(i*size*1.45<height)ctx.fillText(l,center?x+width/2:x,y+i*size*1.45)});}
-function texture(source,draw){if(typeof source==='function')return canvasTexture(source);const tx=canvasTexture(draw);if(typeof source==='string'&&/^data:image\//i.test(source)){const im=new Image();im.onload=()=>{const c=tx.image,ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(im,0,0,c.width,c.height);tx.needsUpdate=true;wake()};im.onerror=()=>console.warn('Texture data URI không hợp lệ; giữ placeholder.');im.src=source;}return tx;}
+function texture(source,draw){if(typeof source==='function')return canvasTexture(source);const tx=canvasTexture(draw);if(typeof source==='string'&&/^data:image\//i.test(source)){const im=new Image();im.onload=()=>{const c=tx.image,ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(im,0,0,c.width,c.height);tx.needsUpdate=true;requestRender()};im.onerror=()=>console.warn('Texture data URI không hợp lệ; giữ placeholder.');im.src=source;}return tx;}
 function material(color,map=null,trans=false){return new T.MeshStandardMaterial({color,map,roughness:.85,metalness:0,bumpMap:noise,bumpScale:.009,transparent:trans,opacity:trans?.62:1,depthWrite:!trans,side:T.DoubleSide});}
 const edgeMat=material(THEME.edge),plain=material(THEME.paper),coverMat=material(THEME.cover);
 function sheet(w,h,mat,th=THICK){const mesh=new T.Mesh(paperGeometry(w,h,th),[mat,edgeMat]);mesh.castShadow=true;mesh.receiveShadow=true;return mesh;}
 const table=new T.Mesh(new T.PlaneGeometry(200,200),material(THEME.table));table.rotation.x=-PI/2;table.receiveShadow=true;scene.add(table);
+function installSettings(getCurrent,isBusy){
+BOOK_CONFIG.scenes.forEach((s,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=s.title;$('settingScene').append(option);});
+function refreshSettingOutputs(){
+ const count=Number($('layerCount').value),maximum=maxGapCm(count,$('openingMode').value);
+ $('layerGap').max=String(maximum);$('layerGap').value=String(Math.min(Number($('layerGap').value),maximum));
+ $('countOutput').textContent=String(count);$('gapOutput').textContent=count===1?'—':`${Number($('layerGap').value).toFixed(2)} cm`;
+ $('layerGap').disabled=count===1;$('spacingHint').textContent=count===1?'Một lớp không có khoảng cách giữa các lớp.':`Khoảng cách từ lớp này tới lớp kế tiếp, dọc trang. Tối đa ${maximum.toFixed(2)} cm với ${count} lớp để gập vừa trang.`;
+}
+function readSceneSettings(){
+ const index=Number($('settingScene').value),layers=BOOK_CONFIG.scenes[index].layers;
+ const depths=layers.map(l=>l.depth).sort((a,b)=>a-b),average=depths.length>1?(depths[depths.length-1]-depths[0])/(depths.length-1)*5:2;
+ $('layerCount').value=String(layers.length);$('layerGap').max=String(maxGapCm(layers.length));$('layerGap').value=String(savedLayouts[index]?.gap??average);$('settingsStatus').textContent='';refreshSettingOutputs();
+}
+$('settingsBtn').onclick=()=>{if(isBusy())return;$('settingScene').value=String(clamp(getCurrent()-1,0,BOOK_CONFIG.scenes.length-1));$('openingMode').value=BOOK_MODE;readSceneSettings();refreshMechanismHint();$('layerSettings').showModal();};
+$('closeSettings').onclick=()=>$('layerSettings').close();$('settingScene').onchange=readSceneSettings;
+$('layerCount').oninput=refreshSettingOutputs;$('layerGap').oninput=refreshSettingOutputs;
+function saveLayout(reset=false){
+ const index=Number($('settingScene').value);if(reset)delete savedLayouts[index];else savedLayouts[index]={count:Number($('layerCount').value),gap:Number($('layerGap').value)};
+ try{localStorage.setItem(MODE_KEY,$('openingMode').value);localStorage.setItem(SETTINGS_KEY,JSON.stringify(savedLayouts));sessionStorage.setItem('popup-book-return-scene',String(index+1));location.reload();}
+ catch(e){$('settingsStatus').textContent='Không thể lưu cài đặt. Hãy cho phép trình duyệt lưu dữ liệu của trang này.';}
+}
+$('applyLayers').onclick=()=>saveLayout();$('resetLayers').onclick=()=>saveLayout(true);
+
+function refreshMechanismHint(){$('mechanismHint').textContent=$('openingMode').value==='180'?'Hai trang nằm phẳng; mỗi lớp gồm hai cánh giấy gấp chữ V, neo vào hai trang và gặp nhau tại gáy.':'Trang sau dựng gần thẳng đứng; các lớp gấp giữa trang sau và trang đang lật.';}
+$('openingMode').onchange=()=>{refreshMechanismHint();refreshSettingOutputs();};
+
+}
+if(BOOK_MODE==='180'){runFlatBook();return;}
 const baseCover=sheet(W+.22,D+.15,coverMat,.085);baseCover.rotation.x=PI/2;baseCover.position.set(0,-.12,-.03);book.add(baseCover);
 // Both fore-edge stacks remain visible; pages are thin extrusions, not a block.
 for(let i=0;i<7;i++){const p=sheet(W+.025*i,D+.015*i,plain,.012);p.rotation.x=PI/2;p.position.set((i-3)*.008,-.09+i*.012,0);book.add(p);}
@@ -1358,27 +1389,7 @@ function resize(){camera.aspect=stage.clientWidth/stage.clientHeight;camera.upda
 let themeDark=matchMedia('(prefers-color-scheme: dark)').matches;
 function theme(){document.body.dataset.mode=themeDark?'dark':'light';for(const [k,v]of Object.entries(THEME[themeDark?'dark':'light']))document.documentElement.style.setProperty('--'+k,v);document.body.style.fontFamily=THEME.font;}
 $('mode').onclick=()=>{themeDark=!themeDark;theme()};$('helpBtn').onclick=()=>{$('help').hidden=!$('help').hidden;$('helpBtn').setAttribute('aria-expanded',String(!$('help').hidden))};$('reset').onclick=resetCamera;
-BOOK_CONFIG.scenes.forEach((s,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=s.title;$('settingScene').append(option);});
-function refreshSettingOutputs(){
- const count=Number($('layerCount').value),maximum=maxGapCm(count);
- $('layerGap').max=String(maximum);$('layerGap').value=String(Math.min(Number($('layerGap').value),maximum));
- $('countOutput').textContent=String(count);$('gapOutput').textContent=count===1?'—':`${Number($('layerGap').value).toFixed(2)} cm`;
- $('layerGap').disabled=count===1;$('spacingHint').textContent=count===1?'Một lớp không có khoảng cách giữa các lớp.':`Khoảng cách từ lớp này tới lớp kế tiếp, dọc trang. Tối đa ${maximum.toFixed(2)} cm với ${count} lớp để gập vừa trang.`;
-}
-function readSceneSettings(){
- const index=Number($('settingScene').value),layers=BOOK_CONFIG.scenes[index].layers;
- const depths=layers.map(l=>l.depth).sort((a,b)=>a-b),average=depths.length>1?(depths[depths.length-1]-depths[0])/(depths.length-1)*5:2;
- $('layerCount').value=String(layers.length);$('layerGap').max=String(maxGapCm(layers.length));$('layerGap').value=String(savedLayouts[index]?.gap??average);$('settingsStatus').textContent='';refreshSettingOutputs();
-}
-$('settingsBtn').onclick=()=>{if(transition)return;$('settingScene').value=String(clamp(current-1,0,BOOK_CONFIG.scenes.length-1));readSceneSettings();$('layerSettings').showModal();};
-$('closeSettings').onclick=()=>$('layerSettings').close();$('settingScene').onchange=readSceneSettings;
-$('layerCount').oninput=refreshSettingOutputs;$('layerGap').oninput=refreshSettingOutputs;
-function saveLayout(reset=false){
- const index=Number($('settingScene').value);if(reset)delete savedLayouts[index];else savedLayouts[index]={count:Number($('layerCount').value),gap:Number($('layerGap').value)};
- try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(savedLayouts));sessionStorage.setItem('popup-book-return-scene',String(index+1));location.reload();}
- catch(e){$('settingsStatus').textContent='Không thể lưu cài đặt. Hãy cho phép trình duyệt lưu dữ liệu của trang này.';}
-}
-$('applyLayers').onclick=()=>saveLayout();$('resetLayers').onclick=()=>saveLayout(true);
+installSettings(()=>current,()=>!!transition);
 $('prev').onclick=()=>goTo(current-1);$('next').onclick=()=>goTo(current+1);
 document.addEventListener('keydown',e=>{if($('layerSettings').open||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();goTo(current+(e.key==='ArrowRight'?1:-1));}if(e.key==='Escape')$('help').hidden=true;});
 function dragStart(e){if(e.button!==undefined&&e.button!==0)return;const to=current===pages.length-1?current-1:current+1;if(!start(to,true))return;e.preventDefault();e.stopPropagation();controls.enabled=false;drag={id:e.pointerId,x:e.clientX,y:e.clientY,lastP:0,lastT:performance.now(),moved:false,source:e.currentTarget};e.currentTarget.setPointerCapture(e.pointerId);}
@@ -1398,9 +1409,169 @@ function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastT
 controls.addEventListener('change',()=>{settledFrames=0;if(!inFrame)wake()});controls.addEventListener('start',wake);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;if(drag)dragEnd({pointerId:drag.id,preventDefault(){}},true);}else wake();});
 renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);raf=0;fail('Kết nối đồ họa bị gián đoạn. Hãy tải lại trang để tiếp tục.');});
-window.addEventListener('resize',resize);theme();applyPage(current);active.layers.forEach(l=>l.angle=0);backPivot.rotation.x=PI/2-bookAngle;setUI();resize();wake();
+renderRequest=wake;window.addEventListener('resize',resize);theme();applyPage(current);active.layers.forEach(l=>l.angle=0);backPivot.rotation.x=PI/2-bookAngle;setUI();resize();wake();
 // Read-only diagnostics for validation; no scene state mutation is exposed.
 window.POPUP_DIAGNOSTICS=()=>({page:current,pages:pages.length,transition:transition?{progress:transition.p,target:transition.target}:null,bookAngle:phi,layerAngles:active.layers.map(l=>l.angle),linkErrors:active.layers.map(l=>Math.max(0,endpointDistance(l,l.angle)-l.linkLength)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,pixelRatio:renderer.getPixelRatio(),reducedMotion:reduced,threeRevision:T.REVISION});
+/* 180-degree V-fold: two rigid wings, two page hinge axes, one centre crease.
+   For beta in [0, PI], c=cos(alpha), s=sin(alpha), q=cos(beta/2):
+   uR=(s,0,-c); uL=(s*cos(beta),s*sin(beta),-c);
+   v=(c*q,c*sin(beta/2),s*q)/sqrt(c*c+s*s*q*q).
+   |uL|=|uR|=|v|=1 and uL.v=uR.v=0 at EVERY opening angle.
+   beta=0: both wings lie in the closed right page; beta=PI: v is vertical.
+   This is a separate spherical four-bar construction, not the 90-degree rig.
+   Reference: paper.gatech.edu/kinetic-joy/physics-paper-engineering
+*/
+function flatFoldFrame(beta,rotation=0,alpha=70*Math.PI/180){
+ const c=Math.cos(alpha),s=Math.sin(alpha),q=Math.cos(beta/2),h=Math.sin(beta/2),n=Math.hypot(c,s*q);
+ const spin=v=>new THREE.Vector3(v[0]*Math.cos(rotation)-v[1]*Math.sin(rotation),v[0]*Math.sin(rotation)+v[1]*Math.cos(rotation),v[2]);
+ return {left:spin([s*Math.cos(beta),s*Math.sin(beta),-c]),right:spin([s,0,-c]),crease:spin([c*q/n,c*h/n,s*q/n])};
+}
+function runFlatBook(){
+ const PW=W/2,ALPHA=70*PI/180,S=Math.sin(ALPHA),C=Math.cos(ALPHA),ROOT=.06;
+ const entries=[{...BOOK_CONFIG.cover,kind:'cover'},...BOOK_CONFIG.scenes.map(s=>({...s,kind:'scene'})),{...BOOK_CONFIG.end,kind:'end'}];
+ let index=clamp(BOOK_CONFIG.initialPage||0,0,entries.length-1),motion=null,held=null,frame=0,last=0,idle=0,rendering=false;
+ let openAngle=entries[index].kind==='scene'?PI:0,theta=0,dark=matchMedia('(prefers-color-scheme: dark)').matches;
+ let visibleRigs=[],currentRig=null;
+ const pageGeometry=new T.BoxGeometry(PW,.018,D,32,1,32);pageGeometry.translate(PW/2,0,D/2);
+ const positions=pageGeometry.attributes.position,puv=pageGeometry.attributes.uv;
+ for(let i=0;i<puv.count;i++)puv.setXY(i,positions.getX(i)/PW,positions.getZ(i)/D);
+ function pageMesh(top,bottom=top,thick=false){const m=new T.Mesh(pageGeometry,[edgeMat,edgeMat,top,bottom,edgeMat,edgeMat]);if(thick)m.scale.y=4;m.castShadow=true;m.receiveShadow=true;return m;}
+ const rightStack=new T.Group(),leftStack=new T.Group();book.add(rightStack,leftStack);leftStack.rotation.z=openAngle;
+ const coverR=pageMesh(coverMat,coverMat,true),coverL=pageMesh(coverMat,coverMat,true);coverR.position.y=-.13;coverL.position.y=.13;rightStack.add(coverR);leftStack.add(coverL);
+ for(let j=0;j<7;j++){const a=pageMesh(plain),b=pageMesh(plain);a.position.y=-.105+j*.014;b.position.y=-a.position.y;rightStack.add(a);leftStack.add(b);}
+ const rightPage=pageMesh(plain),leftPage=pageMesh(plain);rightPage.position.y=.015;leftPage.position.y=-.015;rightStack.add(rightPage);leftStack.add(leftPage);
+ const spineFlat=new T.Mesh(new T.CylinderGeometry(.07,.07,D+.10,12),coverMat);spineFlat.rotation.x=PI/2;spineFlat.position.set(0,-.035,D/2);book.add(spineFlat);
+ const flatContact=canvasTexture((ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(35,45,40,.23)');g.addColorStop(1,'rgba(35,45,40,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)},128,128);
+ const contactMaterial=new T.MeshBasicMaterial({map:flatContact,transparent:true,depthWrite:false});
+ function pageTexture(s,left){
+  const tx=canvasTexture((ctx,w,h)=>{ctx.fillStyle=s.background?.color||THEME.paper;ctx.fillRect(0,0,w,h);ctx.fillStyle=THEME.paper;ctx.fillRect(0,h*.63,w,h*.37);ctx.fillStyle=THEME.ink;ctx.font=`bold 35px ${THEME.font}`;
+    ctx.fillText(left?'PHÔNG NỀN':s.title.toUpperCase(),70,80);ctx.strokeStyle='#819a9240';ctx.strokeRect(40,40,w-80,h*.54);
+    const text=s.text||'',split=Math.floor(text.length/2),at=text.indexOf(' ',split);textBlock(ctx,left?text.slice(0,at):text.slice(at),65,h*.70,w-130,h*.25,30);
+  },768,1024);tx.flipY=false;if(left){tx.repeat.x=-1;tx.offset.x=1;}return material('#ffffff',tx);
+ }
+ const rigs=entries.map((s,number)=>{
+  const group=new T.Group();book.add(group);group.visible=false;
+  const coverTexture=texture(s.texture,(ctx,w,h)=>{ctx.fillStyle=THEME.cover;ctx.fillRect(0,0,w,h);ctx.fillStyle=THEME.ink;textBlock(ctx,s.title,70,h*.32,w-140,h*.23,64,true);textBlock(ctx,s.text||'',70,h*.58,w-140,h*.2,28,true)});coverTexture.flipY=false;
+  const sortedFlat=[...(s.layers||[])].sort((a,b)=>a.depth-b.depth);
+  const baseDepth=Math.max(.60,...sortedFlat.map(cfg=>{const bias=clamp((cfg.x||0)/W,-.30,.30),w=Math.min(clamp((cfg.width||1)*1.65,.6,W*.78),(PW-.35)/(.5+Math.abs(bias)));return w*(.5+Math.abs(bias))/S*C+.08;}));
+  const firstDepth=sortedFlat[0]?.depth||0,span=sortedFlat.length>1?sortedFlat[sortedFlat.length-1].depth-firstDepth:0,depthScale=span>0?Math.min(1,(3.25-baseDepth)/span):1;
+  const layers=sortedFlat.map((cfg,i,all)=>{
+   const bias=clamp((cfg.x||0)/W,-.30,.30),width=Math.min(clamp((cfg.width||1)*1.65,.6,W*.78),(PW-.35)/(.5+Math.abs(bias)));
+   const lengths=[width*(.5-bias)/S,width*(.5+bias)/S];
+   const depth=baseDepth+((cfg.depth||.5)-firstDepth)*depthScale,height=clamp(cfg.height||1,.3,Math.min(D-depth-.18,(PW-.12-Math.max(...lengths)*S)/C));
+   const tx=texture(cfg.texture,(ctx,w,h)=>{ctx.fillStyle=cfg.color||THEME.placeholder[i%THEME.placeholder.length];ctx.fillRect(0,0,w,h);ctx.strokeStyle='#ffffff88';ctx.lineWidth=3;ctx.strokeRect(25,25,w-50,h-50);ctx.fillStyle=THEME.ink;textBlock(ctx,cfg.name||`LỚP ${i+1}`,60,h*.30,w-120,h*.45,90,true)});
+   const mat=material('#ffffff',tx,!!cfg.translucent),split=.5-bias;
+   const wings=lengths.map((length,side)=>{
+    const m=sheet(length,height,mat);m.geometry=m.geometry.clone();const u=m.geometry.attributes.uv;
+    for(let j=0;j<u.count;j++)u.setX(j,side===0?u.getX(j)*split:split+u.getX(j)*(1-split));
+    m.renderOrder=cfg.translucent?10+i:0;group.add(m);return m;
+   });
+   const tabs=lengths.map(length=>{const m=sheet(length,.14,plain,.014);group.add(m);return m;});
+   const seamGeometry=new T.BufferGeometry().setFromPoints([new T.Vector3(),new T.Vector3(0,height,0)]);
+   const seam=new T.Line(seamGeometry,new T.LineBasicMaterial({color:THEME.edge,transparent:true,opacity:.65}));group.add(seam);
+   const shadow=new T.Mesh(new T.PlaneGeometry(width+.3,.6),contactMaterial);shadow.rotation.x=-PI/2;shadow.position.set(0,.025,depth);group.add(shadow);
+   return {wings,tabs,lengths,depth,height,seam,shadow,rank:all.length-i};
+  });
+  return {group,layers,kind:s.kind,title:s.title,left:pageTexture(s,true),right:pageTexture(s,false),cover:material('#ffffff',coverTexture)};
+ });
+ const movingGeometry=pageGeometry.clone(),movingRest=movingGeometry.attributes.position.array.slice();
+ const movingPage=new T.Mesh(movingGeometry,[edgeMat,edgeMat,plain,plain,edgeMat,edgeMat]);movingPage.castShadow=true;movingPage.receiveShadow=true;movingPage.visible=false;book.add(movingPage);
+ const movingTip=new T.Vector3(PW,.04,D-.12),arcX=new Float64Array(65),arcY=new Float64Array(65),arcA=new Float64Array(65);
+ const basis=new T.Matrix4(),normal=new T.Vector3(),axisX=new T.Vector3(),position=new T.Vector3();
+ function posePanel(mesh,u,v,origin,length,side,offset=0){axisX.copy(u).multiplyScalar(side===0?-1:1);normal.crossVectors(axisX,v).normalize();basis.makeBasis(axisX,v,normal);mesh.quaternion.setFromRotationMatrix(basis);mesh.position.copy(origin).addScaledVector(u,length/2).addScaledVector(normal,offset);}
+ function updateRig(rig,beta,rotation=0){
+  const fold=flatFoldFrame(beta,rotation,ALPHA);
+  const directions=[fold.left,fold.right];
+  for(const l of rig.layers){
+   // The gap is only a paper-thickness allowance at the closed singularity.
+   position.set(0,ROOT+l.rank*.032*Math.pow(Math.cos(beta/2),2),l.depth);
+   for(let side=0;side<2;side++){
+    posePanel(l.wings[side],directions[side],fold.crease,position,l.lengths[side],side,.016);
+    const pageAngle=rotation+(side===0?beta:0),radial=new T.Vector3(Math.cos(pageAngle),Math.sin(pageAngle),0);
+    const tabAcross=new T.Vector3().crossVectors(new T.Vector3(-Math.sin(pageAngle),Math.cos(pageAngle),0),directions[side]).normalize();
+    if(tabAcross.dot(radial)<0)tabAcross.negate();posePanel(l.tabs[side],directions[side],tabAcross,position,l.lengths[side],side);
+   }
+   const p=l.seam.geometry.attributes.position;p.setXYZ(0,position.x,position.y,position.z);p.setXYZ(1,position.x+l.height*fold.crease.x,position.y+l.height*fold.crease.y,position.z+l.height*fold.crease.z);p.needsUpdate=true;
+   l.shadow.visible=beta>PI*.75&&Math.abs(rotation)<.01;
+  }
+ }
+ function flexibleLeaf(){
+  const envelope=Math.sin(theta),ds=PW/64;arcX[0]=0;arcY[0]=.025;arcA[0]=theta;
+  for(let i=1;i<=64;i++){const u=(i-.5)/64,free=ease((u-.55)/.45),a=clamp(theta-envelope*1.05*free,0,PI);arcA[i]=a;arcX[i]=arcX[i-1]+Math.cos(a)*ds;arcY[i]=arcY[i-1]+Math.sin(a)*ds;}
+  const p=movingGeometry.attributes.position;
+  for(let i=0;i<p.count;i++){const u=clamp(movingRest[i*3]/PW,0,1)*64,j=Math.min(63,Math.floor(u)),f=u-j,off=movingRest[i*3+1],a=lerp(arcA[j],arcA[j+1],f);p.setXYZ(i,lerp(arcX[j],arcX[j+1],f)-off*Math.sin(a),lerp(arcY[j],arcY[j+1],f)+off*Math.cos(a),movingRest[i*3+2]);}
+  p.needsUpdate=true;movingGeometry.computeVertexNormals();movingGeometry.computeBoundingSphere();movingTip.set(arcX[64],arcY[64]+.03,D-.12);
+ }
+ function show(indexToShow){
+  currentRig=rigs[indexToShow];rigs.forEach((r,i)=>r.group.visible=i===indexToShow&&r.kind==='scene');
+  leftPage.material=[edgeMat,edgeMat,currentRig.left,currentRig.left,edgeMat,edgeMat];rightPage.material=[edgeMat,edgeMat,currentRig.right,currentRig.right,edgeMat,edgeMat];
+  coverL.material=[coverMat,coverMat,currentRig.cover,coverMat,coverMat,coverMat];
+  visibleRigs=[{rig:currentRig,beta:openAngle,rotation:0}];
+ }
+ function ui(){
+  $('sceneName').textContent=entries[index].title+' · 180°';$('count').textContent=`${index+1} / ${entries.length}`;
+  $('prev').disabled=index===0||!!motion;$('next').disabled=index===entries.length-1||!!motion;$('settingsBtn').disabled=!!motion;
+  Array.from($('pages').children).forEach((b,i)=>{b.disabled=!!motion;b.setAttribute('aria-current',String(i===index))});
+  $('gesture').textContent='Sách mở phẳng 180° · Kéo góc phải sang trái để lật';$('corner').setAttribute('aria-label','Kéo góc trang sang trái để lật, hoặc bấm để chuyển trang');
+ }
+ entries.forEach((s,i)=>{const b=document.createElement('button');b.setAttribute('aria-label',s.title);b.onclick=()=>begin(i);$('pages').append(b)});
+ function ease(x){x=clamp(x,0,1);return x*x*(3-2*x)}
+ function quintic(x){return x*x*x*(x*(x*6-15)+10)}
+ function settle(target,velocity=0){if(!motion)return;motion.manual=false;motion.target=target;motion.start=motion.p;motion.time=0;motion.duration=reduced?0:.45+.85*Math.abs(target-motion.p);motion.velocity=clamp(velocity,-1.2,1.2);}
+ function begin(to,manual=false){if(motion||to<0||to>=entries.length||to===index)return false;motion={from:index,to,p:0,input:0,manual,direction:Math.sign(to-index),cover:rigs[index].kind!=='scene'||rigs[to].kind!=='scene',target:1};if(!manual)settle(1);ui();wakeFlat();return true;}
+ function advance(dt){
+  if(!motion)return;const m=motion;
+  if(m.manual)m.p+=(m.input-m.p)*(1-Math.exp(-38*dt));else{m.time+=dt;const u=m.duration?clamp(m.time/m.duration,0,1):1;m.p=clamp(lerp(m.start,m.target,quintic(u))+m.velocity*m.duration*u*Math.pow(1-u,3),0,1);}
+  const old=rigs[m.from],next=rigs[m.to];
+  if(m.cover){
+   openAngle=lerp(old.kind==='scene'?PI:0,next.kind==='scene'?PI:0,m.p);leftStack.rotation.z=openAngle;
+   // Raise the closed cover by the thickness of the folded paper packet.
+   leftStack.position.y=.40*Math.pow(Math.cos(openAngle/2),2);
+   const chosen=next.kind==='scene'?next:old.kind==='scene'?old:(m.p<.5?old:next);
+   rigs.forEach(r=>r.group.visible=r===chosen&&r.kind==='scene');visibleRigs=[{rig:chosen,beta:openAngle,rotation:0}];
+   rightPage.material=[edgeMat,edgeMat,chosen.right,chosen.right,edgeMat,edgeMat];leftPage.material=[edgeMat,edgeMat,chosen.left,chosen.left,edgeMat,edgeMat];
+   coverL.material=[coverMat,coverMat,(next.kind==='scene'?old:next).cover,coverMat,coverMat,coverMat];movingPage.visible=false;
+  }else{
+   openAngle=PI;leftStack.rotation.z=PI;leftStack.position.y=0;theta=PI*(m.direction>0?m.p:1-m.p);
+   const rightRig=m.direction>0?next:old,leftRig=m.direction>0?old:next;
+   // Two independent V mechanisms meet the same moving leaf. Each is
+   // evaluated in its own pair of page planes, never with a 90-degree driver.
+   visibleRigs=[{rig:rightRig,beta:theta,rotation:0},{rig:leftRig,beta:PI-theta,rotation:theta}];
+   rigs.forEach(r=>r.group.visible=r===rightRig||r===leftRig);rightRig.group.visible=theta>.025;leftRig.group.visible=theta<PI-.025;
+   rightPage.material=[edgeMat,edgeMat,rightRig.right,rightRig.right,edgeMat,edgeMat];leftPage.material=[edgeMat,edgeMat,leftRig.left,leftRig.left,edgeMat,edgeMat];
+   movingPage.material=[edgeMat,edgeMat,leftRig.right,rightRig.left,edgeMat,edgeMat];movingPage.visible=true;flexibleLeaf();
+  }
+  if(!m.manual&&m.time>=m.duration){index=m.target===1?m.to:m.from;motion=null;openAngle=rigs[index].kind==='scene'?PI:0;leftStack.rotation.z=openAngle;leftStack.position.y=openAngle===0?.40:0;movingPage.visible=false;show(index);ui();$('status').textContent=entries[index].title;}
+ }
+ function resetView(){
+  const aspect=stage.clientWidth/stage.clientHeight,r=Math.max(15,5.15/(Math.tan(PI/9)*aspect));
+  camera.position.set(Math.sin(centerAz)*r*.819,1+r*.574,D/2+Math.cos(centerAz)*r*.819);controls.target.set(0,1,D/2);controls.minDistance=r*.85;controls.maxDistance=r*1.3;controls.update();wakeFlat();
+ }
+ function resizeFlat(){camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();renderer.setSize(stage.clientWidth,stage.clientHeight);resetView();}
+ function setTheme(){document.body.dataset.mode=dark?'dark':'light';for(const [k,v]of Object.entries(THEME[dark?'dark':'light']))document.documentElement.style.setProperty('--'+k,v);document.body.style.fontFamily=THEME.font;}
+ $('mode').onclick=()=>{dark=!dark;setTheme()};$('reset').onclick=resetView;$('helpBtn').onclick=()=>{$('help').hidden=!$('help').hidden;$('helpBtn').setAttribute('aria-expanded',String(!$('help').hidden))};
+ $('prev').onclick=()=>begin(index-1);$('next').onclick=()=>begin(index+1);installSettings(()=>index,()=>!!motion);
+ document.addEventListener('keydown',e=>{if($('layerSettings').open||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();begin(index+(e.key==='ArrowRight'?1:-1));}if(e.key==='Escape')$('help').hidden=true;});
+ function down(e){if(e.button!==undefined&&e.button!==0)return;if(!begin(index===entries.length-1?index-1:index+1,true))return;e.preventDefault();e.stopPropagation();controls.enabled=false;held={id:e.pointerId,x:e.clientX,y:e.clientY,p:0,time:performance.now(),velocity:0,moved:false,source:e.currentTarget};e.currentTarget.setPointerCapture(e.pointerId);}
+ function move(e){if(!held||held.id!==e.pointerId||!motion)return;e.preventDefault();const p=clamp(((held.x-e.clientX)+(held.y-e.clientY)*.35)/Math.max(160,stage.clientWidth*.5),0,1),now=performance.now();held.velocity=clamp((p-held.p)/Math.max(.01,(now-held.time)/1000),-1.2,1.2);held.moved ||= Math.hypot(e.clientX-held.x,e.clientY-held.y)>7;held.time=now;held.p=p;motion.input=p;wakeFlat();}
+ function up(e,cancel=false){if(!held||held.id!==e.pointerId)return;e.preventDefault();settle(cancel?0:(!held.moved||held.p>=.4?1:0),performance.now()-held.time>100?0:held.velocity);if(held.source.hasPointerCapture(e.pointerId))held.source.releasePointerCapture(e.pointerId);held=null;controls.enabled=true;wakeFlat();}
+ $('corner').addEventListener('pointerdown',down);$('corner').addEventListener('pointermove',move);$('corner').addEventListener('pointerup',e=>up(e));$('corner').addEventListener('pointercancel',e=>up(e,true));$('corner').onclick=e=>{if(e.detail===0)begin(index===entries.length-1?index-1:index+1)};
+ renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-r.left-22,e.clientY-r.top-22)<52)down(e)},true);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',e=>up(e));renderer.domElement.addEventListener('pointercancel',e=>up(e,true));
+ function wakeFlat(){idle=0;if(!document.hidden&&!frame){last=performance.now();frame=requestAnimationFrame(tickFlat)}}
+ function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);controls.update();
+  const point=motion&&!motion.cover?movingTip.clone():new T.Vector3(PW-.1,.1,D-.1);book.localToWorld(point);point.project(camera);
+  $('corner').style.transform=`translate(${clamp((point.x*.5+.5)*stage.clientWidth-22,4,stage.clientWidth-48)}px,${clamp((-point.y*.5+.5)*stage.clientHeight-22,4,stage.clientHeight-48)}px)`;$('corner').style.visibility=motion&&!held?'hidden':'visible';
+  stage.dataset.engine='vfold-180-v1';stage.dataset.bookAngle=openAngle.toFixed(6);stage.dataset.turnAngle=theta.toFixed(6);stage.dataset.progress=motion?motion.p.toFixed(4):'idle';stage.dataset.layers=String(currentRig.layers.length);
+  renderer.render(scene,camera);rendering=false;if(!document.hidden&&(motion||held||++idle<60))frame=requestAnimationFrame(tickFlat);
+ }
+ renderRequest=wakeFlat;controls.addEventListener('change',()=>{idle=0;if(!rendering)wakeFlat()});controls.addEventListener('start',wakeFlat);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;if(held)up({pointerId:held.id,preventDefault(){}},true);}else wakeFlat()});
+ renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(frame);frame=0;fail('Kết nối đồ họa bị gián đoạn. Hãy tải lại trang để tiếp tục.');});
+ window.addEventListener('resize',resizeFlat);show(index);leftStack.position.y=openAngle===0?.40:0;setTheme();ui();resizeFlat();wakeFlat();
+ // Local preview only: freeze a real transition for geometric and visual QA.
+ if(location.hostname==='127.0.0.1'&&new URLSearchParams(location.search).has('flatInspect')){begin(Math.min(index+1,entries.length-2),true);if(motion)motion.p=motion.input=clamp(Number(new URLSearchParams(location.search).get('flatInspect')),0,1);}
+}
+
 })();
 </script>
 </body>
