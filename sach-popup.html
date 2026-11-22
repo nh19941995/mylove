@@ -1,0 +1,1254 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Sách pop-up — Khung tương tác 3D</title>
+<style>
+*{box-sizing:border-box} :root{font-family:Arial,sans-serif;color-scheme:light;--ui:#f4f5f3;--ink:#283b3c;--panel:#fffffff0;--line:#d3ddda;--accent:#356b63;--muted:#627471}body{margin:0;background:var(--ui);color:var(--ink);overflow:hidden}button,select{font:inherit}button{cursor:pointer;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:44px;padding:10px 17px}button:hover{border-color:var(--accent)}button:disabled{opacity:.35;cursor:default}button:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid var(--accent);outline-offset:4px}#app{height:100svh;min-height:390px;display:flex;flex-direction:column;padding:max(16px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left));gap:12px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:2}.eyebrow{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}h1{font-size:clamp(20px,3vw,28px);letter-spacing:-.04em;margin:5px 0;font-weight:600}.tools{display:flex;gap:8px}#stage{position:relative;flex:1;min-height:0;border:1px solid var(--line);border-radius:22px;background:radial-gradient(ellipse at 45% 40%,#fff 0%,#eeefeb 62%,#dee4de 100%);overflow:hidden}canvas{display:block;width:100%;height:100%;touch-action:none}#caption{position:absolute;left:20px;top:18px;pointer-events:none}.tag{display:inline-block;font-size:12px;letter-spacing:.09em;border:1px solid var(--line);padding:6px 9px;border-radius:7px;background:var(--panel);color:var(--muted)}#sceneName{font-size:17px;font-weight:600;margin-top:9px}#gesture{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);max-width:90%;width:max-content;text-align:center;padding:9px 14px;background:var(--panel);border:1px solid var(--line);border-radius:30px;color:var(--muted);font-size:13px;pointer-events:none}#corner{position:absolute;left:0;top:0;width:44px;height:44px;padding:0;border:1px solid #fff;box-shadow:0 3px 14px #152d3430;border-radius:50%;background:var(--accent);color:#fff;touch-action:none;font-size:20px;z-index:2}#corner:after{content:'';position:absolute;inset:-10px;border:1px solid #356b6344;border-radius:50%;pointer-events:none}footer{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px}#prev{justify-self:start}#next{justify-self:end;background:var(--accent);color:white;border-color:var(--accent)}.pager{text-align:center}#pages{display:flex;justify-content:center;gap:8px;margin-bottom:7px}#pages button{width:28px;min-height:6px;height:6px;padding:0;border:0;border-radius:4px;background:var(--line)}#pages button[aria-current=true]{background:var(--accent)}#count{font-size:12px;color:var(--muted)}#error{display:none;position:absolute;inset:0;place-content:center;text-align:center;padding:30px;background:var(--ui);z-index:5}#error p{max-width:440px;line-height:1.6}#help{position:absolute;right:18px;top:18px;width:min(330px,calc(100% - 36px));padding:18px;border:1px solid var(--line);background:var(--panel);border-radius:14px;z-index:4;box-shadow:0 12px 40px #20303018}#help p{font-size:14px;line-height:1.6;margin:8px 0}#help[hidden]{display:none}#status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}body[data-mode=dark]{color-scheme:dark;--ui:#182322;--ink:#e1ebe6;--panel:#243431f5;--line:#41544f;--accent:#5c8b7d;--muted:#b0c3bc}body[data-mode=dark] #stage{background:radial-gradient(ellipse at 45% 40%,#e4e7df,#adb9af)}@media(max-width:600px){#app{padding:12px 10px max(12px,env(safe-area-inset-bottom));gap:10px}header{padding:0 4px}.eyebrow{font-size:10px}h1{font-size:20px}.tools button{padding:8px 11px}#reset{display:none}#caption{left:13px;top:13px}#sceneName{font-size:15px}#gesture{font-size:11px;bottom:12px}footer{gap:6px}footer>button{padding:10px 12px;font-size:14px}#pages{gap:5px}#pages button{width:20px}#stage{border-radius:17px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="app">
+ <header><div><div class="eyebrow">Mô hình cơ chế · Không có nội dung truyện</div><h1>Sách pop-up 3D</h1></div><div class="tools"><button id="reset" aria-label="Đặt lại góc nhìn">Góc nhìn gốc</button><button id="mode" aria-label="Đổi giao diện sáng tối">Sáng / tối</button><button id="helpBtn" aria-label="Hướng dẫn thao tác" aria-expanded="false">?</button></div></header>
+ <main id="stage"><div id="caption"><span class="tag">BẢN KHUNG</span><div id="sceneName"></div></div><button id="corner" aria-label="Kéo góc trang lên để lật tiếp, hoặc bấm để lật">↗</button><div id="gesture">Kéo góc trang để lật · Kéo vùng trống để xoay</div><aside id="help" hidden><strong>Thử cơ chế</strong><p>Kéo nút tròn ở góc trang lên hoặc sang trái. Qua 40% rồi thả để lật; dưới ngưỡng, trang trở lại.</p><p>Kéo vùng trống để xoay. Cuộn chuột hoặc chụm hai ngón để zoom. Dùng phím ← → hoặc nút bên dưới để chuyển trang.</p><p>Chuyển động được giảm tự động theo cài đặt thiết bị.</p></aside><div id="error" role="alert"><p></p></div></main>
+ <footer><button id="prev" aria-label="Lật về trang trước">Trang trước</button><div class="pager"><div id="pages" aria-label="Chọn trang"></div><span id="count"></span></div><button id="next" aria-label="Lật sang trang tiếp theo">Trang tiếp</button></footer>
+ <div id="status" role="status" aria-live="polite"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ================================================================
+   NỘI DUNG: chỉ sửa BOOK_CONFIG và THEME. Đơn vị hình học: 1 = 5 cm.
+   texture: null | data:image/... | function(ctx, width, height).
+   width/height/x/depth/tabHeight tính theo đơn vị trên; delay = giây.
+   depth tăng từ gáy về phía người xem. Thứ tự mảng không quan trọng.
+   Cơ chế giới hạn kích thước vào vùng an toàn và giữ lớp sau ở trên
+   lớp trước khi gập. Đây là linkage giấy lý tưởng + độ đàn hồi nhỏ,
+   không phải mô phỏng ứng suất vật liệu hay bản rập chế tạo.
+   ================================================================ */
+const BOOK_CONFIG = {
+  initialPage: 1,
+  cover: { title: 'BÌA SÁCH', text: 'VỊ TRÍ TÊN SÁCH', texture: null },
+  end: { title: 'TRANG CUỐI', text: 'VỊ TRÍ NỘI DUNG CUỐI', texture: null },
+  scenes: [
+    {title:'Cảnh giữ chỗ 01',text:'Lorem ipsum — đây là đoạn văn giữ chỗ để kiểm tra bố cục và khả năng tự xuống dòng. Nội dung chính sẽ được thay vào sau. Những dòng chữ thử nghiệm có độ dài khác nhau, bao gồm dấu tiếng Việt, khoảng trắng và dấu câu. Vùng văn bản nằm ở nửa dưới trang sách, tách khỏi các lớp giấy dựng phía trên.',background:{texture:null,color:'#b9cbd0'},layers:[
+      {name:'LỚP 1 – nhân vật',texture:null,width:1.45,height:1.85,x:-1.25,depth:2.18,tabHeight:.26,color:'#d9cdc1',delay:.24,stiffness:105},
+      {name:'LỚP 2 – vật dụng lớn',texture:null,width:2.5,height:2.5,x:.65,depth:1.02,tabHeight:.32,color:'#afc0b9',delay:.06,stiffness:145},
+      {name:'LỚP 3 – hàng rào',texture:null,width:2.15,height:.85,x:1.32,depth:2.7,tabHeight:.18,color:'#c6c8bd',delay:.32,stiffness:85},
+      {name:'LỚP 4 – cảnh phụ',texture:null,width:1.05,height:2.65,x:-2.5,depth:.65,tabHeight:.28,color:'#9dabb3',delay:0,stiffness:155},
+      {name:'LỚP TRONG SUỐT',texture:null,width:1.12,height:1.28,x:2.45,depth:1.8,tabHeight:.22,color:'#b4c9cf',translucent:true,delay:.17,stiffness:120}]},
+    {title:'Cảnh giữ chỗ 02',text:'Lorem ipsum — vùng chữ thứ hai dùng để thử nội dung dài hơn. Bạn có thể thay đoạn này bằng bất kỳ văn bản tiếng Việt nào. Hệ thống tự chia dòng theo chiều rộng trang và giảm cỡ chữ khi cần để giữ nội dung trong khung. Đây chỉ là nội dung thử nghiệm cho bộ máy sách pop-up; chưa có câu chuyện, nhân vật hay hình minh họa hoàn chỉnh.',background:{texture:null,color:'#c3cfc8'},layers:[
+      {name:'LỚP 1 – nhân vật',texture:null,width:1.3,height:2,x:.1,depth:2.25,tabHeight:.25,color:'#d3c6ba',delay:.2,stiffness:105},
+      {name:'LỚP 2 – vật dụng lớn',texture:null,width:2,height:2.6,x:-1.65,depth:.72,tabHeight:.3,color:'#b4bfc3',delay:0,stiffness:150},
+      {name:'LỚP 3 – hàng rào',texture:null,width:2,height:.85,x:-1.8,depth:2.7,tabHeight:.2,color:'#c4c9bb',delay:.3,stiffness:95},
+      {name:'LỚP TRONG SUỐT',texture:null,width:1.8,height:2.2,x:1.8,depth:1.35,tabHeight:.26,color:'#b8c5d0',translucent:true,delay:.12,stiffness:125}]},
+    {title:'Cảnh giữ chỗ 03',text:'Lorem ipsum — đoạn văn giữ chỗ cuối cùng dành cho kiểm thử. Xoay cuốn sách để quan sát khoảng cách giữa các lớp, bóng đổ lên mặt giấy và các chân gấp ở đáy. Kéo góc trang để xem trang giấy uốn cong, sau đó thả tay để hoàn tất hoặc trở về. Nội dung và hình ảnh sẽ được bổ sung ở bước tiếp theo.',background:{texture:null,color:'#c5c8d0'},layers:[
+      {name:'LỚP 1 – nhân vật',texture:null,width:1.2,height:1.7,x:-.65,depth:2.35,tabHeight:.23,color:'#d3c6bd',delay:.24,stiffness:105},
+      {name:'LỚP 2 – vật dụng lớn',texture:null,width:1.8,height:2.65,x:.4,depth:.65,tabHeight:.3,color:'#a9bab3',delay:0,stiffness:150},
+      {name:'LỚP 3 – hàng rào',texture:null,width:1.75,height:.7,x:1.6,depth:2.85,tabHeight:.18,color:'#c6cbbb',delay:.32,stiffness:90},
+      {name:'LỚP 4 – cảnh phụ',texture:null,width:1.1,height:2.4,x:-2.2,depth:1.1,tabHeight:.26,color:'#acb8c4',delay:.08,stiffness:130},
+      {name:'LỚP 5 – chi tiết',texture:null,width:.9,height:1.25,x:-2.5,depth:2.5,tabHeight:.2,color:'#d0c9bc',delay:.28,stiffness:100},
+      {name:'LỚP TRONG SUỐT',texture:null,width:1.1,height:1.8,x:2.3,depth:1.7,tabHeight:.24,color:'#b8c9cd',translucent:true,delay:.16,stiffness:115}]}
+  ]
+};
+const THEME = {
+  paper:'#eeeae0', table:'#f3f2eb', edge:'#fffdf5', cover:'#829b96', ink:'#304549', font:'Arial, sans-serif',
+  placeholder:['#b9cbd0','#c9c4b8','#aebdb6','#bac2ca'],
+  light:{ui:'#f4f5f3',ink:'#283b3c',panel:'#fffffff0',line:'#d3ddda',accent:'#356b63',muted:'#627471'},
+  dark:{ui:'#182322',ink:'#e1ebe6',panel:'#243431f5',line:'#41544f',accent:'#5c8b7d',muted:'#b0c3bc'}
+};
+/* Three.js OrbitControls r128, MIT license, embedded for single-file delivery. */
+if (window.THREE) {
+( function () {
+
+	// Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
+	//
+	//    Orbit - left mouse / touch: one-finger move
+	//    Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
+	//    Pan - right mouse, or left mouse + ctrl/meta/shiftKey, or arrow keys / touch: two-finger move
+
+	const _changeEvent = {
+		type: 'change'
+	};
+	const _startEvent = {
+		type: 'start'
+	};
+	const _endEvent = {
+		type: 'end'
+	};
+
+	class OrbitControls extends THREE.EventDispatcher {
+
+		constructor( object, domElement ) {
+
+			super();
+			if ( domElement === undefined ) console.warn( 'THREE.OrbitControls: The second parameter "domElement" is now mandatory.' );
+			if ( domElement === document ) console.error( 'THREE.OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.' );
+			this.object = object;
+			this.domElement = domElement; // Set to false to disable this control
+
+			this.enabled = true; // "target" sets the location of focus, where the object orbits around
+
+			this.target = new THREE.Vector3(); // How far you can dolly in and out ( PerspectiveCamera only )
+
+			this.minDistance = 0;
+			this.maxDistance = Infinity; // How far you can zoom in and out ( OrthographicCamera only )
+
+			this.minZoom = 0;
+			this.maxZoom = Infinity; // How far you can orbit vertically, upper and lower limits.
+			// Range is 0 to Math.PI radians.
+
+			this.minPolarAngle = 0; // radians
+
+			this.maxPolarAngle = Math.PI; // radians
+			// How far you can orbit horizontally, upper and lower limits.
+			// If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
+
+			this.minAzimuthAngle = - Infinity; // radians
+
+			this.maxAzimuthAngle = Infinity; // radians
+			// Set to true to enable damping (inertia)
+			// If damping is enabled, you must call controls.update() in your animation loop
+
+			this.enableDamping = false;
+			this.dampingFactor = 0.05; // This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
+			// Set to false to disable zooming
+
+			this.enableZoom = true;
+			this.zoomSpeed = 1.0; // Set to false to disable rotating
+
+			this.enableRotate = true;
+			this.rotateSpeed = 1.0; // Set to false to disable panning
+
+			this.enablePan = true;
+			this.panSpeed = 1.0;
+			this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
+
+			this.keyPanSpeed = 7.0; // pixels moved per arrow key push
+			// Set to true to automatically rotate around the target
+			// If auto-rotate is enabled, you must call controls.update() in your animation loop
+
+			this.autoRotate = false;
+			this.autoRotateSpeed = 2.0; // 30 seconds per orbit when fps is 60
+			// The four arrow keys
+
+			this.keys = {
+				LEFT: 'ArrowLeft',
+				UP: 'ArrowUp',
+				RIGHT: 'ArrowRight',
+				BOTTOM: 'ArrowDown'
+			}; // Mouse buttons
+
+			this.mouseButtons = {
+				LEFT: THREE.MOUSE.ROTATE,
+				MIDDLE: THREE.MOUSE.DOLLY,
+				RIGHT: THREE.MOUSE.PAN
+			}; // Touch fingers
+
+			this.touches = {
+				ONE: THREE.TOUCH.ROTATE,
+				TWO: THREE.TOUCH.DOLLY_PAN
+			}; // for reset
+
+			this.target0 = this.target.clone();
+			this.position0 = this.object.position.clone();
+			this.zoom0 = this.object.zoom; // the target DOM element for key events
+
+			this._domElementKeyEvents = null; //
+			// public methods
+			//
+
+			this.getPolarAngle = function () {
+
+				return spherical.phi;
+
+			};
+
+			this.getAzimuthalAngle = function () {
+
+				return spherical.theta;
+
+			};
+
+			this.listenToKeyEvents = function ( domElement ) {
+
+				domElement.addEventListener( 'keydown', onKeyDown );
+				this._domElementKeyEvents = domElement;
+
+			};
+
+			this.saveState = function () {
+
+				scope.target0.copy( scope.target );
+				scope.position0.copy( scope.object.position );
+				scope.zoom0 = scope.object.zoom;
+
+			};
+
+			this.reset = function () {
+
+				scope.target.copy( scope.target0 );
+				scope.object.position.copy( scope.position0 );
+				scope.object.zoom = scope.zoom0;
+				scope.object.updateProjectionMatrix();
+				scope.dispatchEvent( _changeEvent );
+				scope.update();
+				state = STATE.NONE;
+
+			}; // this method is exposed, but perhaps it would be better if we can make it private...
+
+
+			this.update = function () {
+
+				const offset = new THREE.Vector3(); // so camera.up is the orbit axis
+
+				const quat = new THREE.Quaternion().setFromUnitVectors( object.up, new THREE.Vector3( 0, 1, 0 ) );
+				const quatInverse = quat.clone().invert();
+				const lastPosition = new THREE.Vector3();
+				const lastQuaternion = new THREE.Quaternion();
+				const twoPI = 2 * Math.PI;
+				return function update() {
+
+					const position = scope.object.position;
+					offset.copy( position ).sub( scope.target ); // rotate offset to "y-axis-is-up" space
+
+					offset.applyQuaternion( quat ); // angle from z-axis around y-axis
+
+					spherical.setFromVector3( offset );
+
+					if ( scope.autoRotate && state === STATE.NONE ) {
+
+						rotateLeft( getAutoRotationAngle() );
+
+					}
+
+					if ( scope.enableDamping ) {
+
+						spherical.theta += sphericalDelta.theta * scope.dampingFactor;
+						spherical.phi += sphericalDelta.phi * scope.dampingFactor;
+
+					} else {
+
+						spherical.theta += sphericalDelta.theta;
+						spherical.phi += sphericalDelta.phi;
+
+					} // restrict theta to be between desired limits
+
+
+					let min = scope.minAzimuthAngle;
+					let max = scope.maxAzimuthAngle;
+
+					if ( isFinite( min ) && isFinite( max ) ) {
+
+						if ( min < - Math.PI ) min += twoPI; else if ( min > Math.PI ) min -= twoPI;
+						if ( max < - Math.PI ) max += twoPI; else if ( max > Math.PI ) max -= twoPI;
+
+						if ( min <= max ) {
+
+							spherical.theta = Math.max( min, Math.min( max, spherical.theta ) );
+
+						} else {
+
+							spherical.theta = spherical.theta > ( min + max ) / 2 ? Math.max( min, spherical.theta ) : Math.min( max, spherical.theta );
+
+						}
+
+					} // restrict phi to be between desired limits
+
+
+					spherical.phi = Math.max( scope.minPolarAngle, Math.min( scope.maxPolarAngle, spherical.phi ) );
+					spherical.makeSafe();
+					spherical.radius *= scale; // restrict radius to be between desired limits
+
+					spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) ); // move target to panned location
+
+					if ( scope.enableDamping === true ) {
+
+						scope.target.addScaledVector( panOffset, scope.dampingFactor );
+
+					} else {
+
+						scope.target.add( panOffset );
+
+					}
+
+					offset.setFromSpherical( spherical ); // rotate offset back to "camera-up-vector-is-up" space
+
+					offset.applyQuaternion( quatInverse );
+					position.copy( scope.target ).add( offset );
+					scope.object.lookAt( scope.target );
+
+					if ( scope.enableDamping === true ) {
+
+						sphericalDelta.theta *= 1 - scope.dampingFactor;
+						sphericalDelta.phi *= 1 - scope.dampingFactor;
+						panOffset.multiplyScalar( 1 - scope.dampingFactor );
+
+					} else {
+
+						sphericalDelta.set( 0, 0, 0 );
+						panOffset.set( 0, 0, 0 );
+
+					}
+
+					scale = 1; // update condition is:
+					// min(camera displacement, camera rotation in radians)^2 > EPS
+					// using small-angle approximation cos(x/2) = 1 - x^2 / 8
+
+					if ( zoomChanged || lastPosition.distanceToSquared( scope.object.position ) > EPS || 8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS ) {
+
+						scope.dispatchEvent( _changeEvent );
+						lastPosition.copy( scope.object.position );
+						lastQuaternion.copy( scope.object.quaternion );
+						zoomChanged = false;
+						return true;
+
+					}
+
+					return false;
+
+				};
+
+			}();
+
+			this.dispose = function () {
+
+				scope.domElement.removeEventListener( 'contextmenu', onContextMenu );
+				scope.domElement.removeEventListener( 'pointerdown', onPointerDown );
+				scope.domElement.removeEventListener( 'wheel', onMouseWheel );
+				scope.domElement.removeEventListener( 'touchstart', onTouchStart );
+				scope.domElement.removeEventListener( 'touchend', onTouchEnd );
+				scope.domElement.removeEventListener( 'touchmove', onTouchMove );
+				scope.domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove );
+				scope.domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+
+				if ( scope._domElementKeyEvents !== null ) {
+
+					scope._domElementKeyEvents.removeEventListener( 'keydown', onKeyDown );
+
+				} //scope.dispatchEvent( { type: 'dispose' } ); // should this be added here?
+
+			}; //
+			// internals
+			//
+
+
+			const scope = this;
+			const STATE = {
+				NONE: - 1,
+				ROTATE: 0,
+				DOLLY: 1,
+				PAN: 2,
+				TOUCH_ROTATE: 3,
+				TOUCH_PAN: 4,
+				TOUCH_DOLLY_PAN: 5,
+				TOUCH_DOLLY_ROTATE: 6
+			};
+			let state = STATE.NONE;
+			const EPS = 0.000001; // current position in spherical coordinates
+
+			const spherical = new THREE.Spherical();
+			const sphericalDelta = new THREE.Spherical();
+			let scale = 1;
+			const panOffset = new THREE.Vector3();
+			let zoomChanged = false;
+			const rotateStart = new THREE.Vector2();
+			const rotateEnd = new THREE.Vector2();
+			const rotateDelta = new THREE.Vector2();
+			const panStart = new THREE.Vector2();
+			const panEnd = new THREE.Vector2();
+			const panDelta = new THREE.Vector2();
+			const dollyStart = new THREE.Vector2();
+			const dollyEnd = new THREE.Vector2();
+			const dollyDelta = new THREE.Vector2();
+
+			function getAutoRotationAngle() {
+
+				return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
+
+			}
+
+			function getZoomScale() {
+
+				return Math.pow( 0.95, scope.zoomSpeed );
+
+			}
+
+			function rotateLeft( angle ) {
+
+				sphericalDelta.theta -= angle;
+
+			}
+
+			function rotateUp( angle ) {
+
+				sphericalDelta.phi -= angle;
+
+			}
+
+			const panLeft = function () {
+
+				const v = new THREE.Vector3();
+				return function panLeft( distance, objectMatrix ) {
+
+					v.setFromMatrixColumn( objectMatrix, 0 ); // get X column of objectMatrix
+
+					v.multiplyScalar( - distance );
+					panOffset.add( v );
+
+				};
+
+			}();
+
+			const panUp = function () {
+
+				const v = new THREE.Vector3();
+				return function panUp( distance, objectMatrix ) {
+
+					if ( scope.screenSpacePanning === true ) {
+
+						v.setFromMatrixColumn( objectMatrix, 1 );
+
+					} else {
+
+						v.setFromMatrixColumn( objectMatrix, 0 );
+						v.crossVectors( scope.object.up, v );
+
+					}
+
+					v.multiplyScalar( distance );
+					panOffset.add( v );
+
+				};
+
+			}(); // deltaX and deltaY are in pixels; right and down are positive
+
+
+			const pan = function () {
+
+				const offset = new THREE.Vector3();
+				return function pan( deltaX, deltaY ) {
+
+					const element = scope.domElement;
+
+					if ( scope.object.isPerspectiveCamera ) {
+
+						// perspective
+						const position = scope.object.position;
+						offset.copy( position ).sub( scope.target );
+						let targetDistance = offset.length(); // half of the fov is center to top of screen
+
+						targetDistance *= Math.tan( scope.object.fov / 2 * Math.PI / 180.0 ); // we use only clientHeight here so aspect ratio does not distort speed
+
+						panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
+						panUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
+
+					} else if ( scope.object.isOrthographicCamera ) {
+
+						// orthographic
+						panLeft( deltaX * ( scope.object.right - scope.object.left ) / scope.object.zoom / element.clientWidth, scope.object.matrix );
+						panUp( deltaY * ( scope.object.top - scope.object.bottom ) / scope.object.zoom / element.clientHeight, scope.object.matrix );
+
+					} else {
+
+						// camera neither orthographic nor perspective
+						console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.' );
+						scope.enablePan = false;
+
+					}
+
+				};
+
+			}();
+
+			function dollyOut( dollyScale ) {
+
+				if ( scope.object.isPerspectiveCamera ) {
+
+					scale /= dollyScale;
+
+				} else if ( scope.object.isOrthographicCamera ) {
+
+					scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
+					scope.object.updateProjectionMatrix();
+					zoomChanged = true;
+
+				} else {
+
+					console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.' );
+					scope.enableZoom = false;
+
+				}
+
+			}
+
+			function dollyIn( dollyScale ) {
+
+				if ( scope.object.isPerspectiveCamera ) {
+
+					scale *= dollyScale;
+
+				} else if ( scope.object.isOrthographicCamera ) {
+
+					scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom / dollyScale ) );
+					scope.object.updateProjectionMatrix();
+					zoomChanged = true;
+
+				} else {
+
+					console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.' );
+					scope.enableZoom = false;
+
+				}
+
+			} //
+			// event callbacks - update the object state
+			//
+
+
+			function handleMouseDownRotate( event ) {
+
+				rotateStart.set( event.clientX, event.clientY );
+
+			}
+
+			function handleMouseDownDolly( event ) {
+
+				dollyStart.set( event.clientX, event.clientY );
+
+			}
+
+			function handleMouseDownPan( event ) {
+
+				panStart.set( event.clientX, event.clientY );
+
+			}
+
+			function handleMouseMoveRotate( event ) {
+
+				rotateEnd.set( event.clientX, event.clientY );
+				rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( scope.rotateSpeed );
+				const element = scope.domElement;
+				rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
+
+				rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+				rotateStart.copy( rotateEnd );
+				scope.update();
+
+			}
+
+			function handleMouseMoveDolly( event ) {
+
+				dollyEnd.set( event.clientX, event.clientY );
+				dollyDelta.subVectors( dollyEnd, dollyStart );
+
+				if ( dollyDelta.y > 0 ) {
+
+					dollyOut( getZoomScale() );
+
+				} else if ( dollyDelta.y < 0 ) {
+
+					dollyIn( getZoomScale() );
+
+				}
+
+				dollyStart.copy( dollyEnd );
+				scope.update();
+
+			}
+
+			function handleMouseMovePan( event ) {
+
+				panEnd.set( event.clientX, event.clientY );
+				panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
+				pan( panDelta.x, panDelta.y );
+				panStart.copy( panEnd );
+				scope.update();
+
+			}
+
+			function handleMouseUp( ) { // no-op
+			}
+
+			function handleMouseWheel( event ) {
+
+				if ( event.deltaY < 0 ) {
+
+					dollyIn( getZoomScale() );
+
+				} else if ( event.deltaY > 0 ) {
+
+					dollyOut( getZoomScale() );
+
+				}
+
+				scope.update();
+
+			}
+
+			function handleKeyDown( event ) {
+
+				let needsUpdate = false;
+
+				switch ( event.code ) {
+
+					case scope.keys.UP:
+						pan( 0, scope.keyPanSpeed );
+						needsUpdate = true;
+						break;
+
+					case scope.keys.BOTTOM:
+						pan( 0, - scope.keyPanSpeed );
+						needsUpdate = true;
+						break;
+
+					case scope.keys.LEFT:
+						pan( scope.keyPanSpeed, 0 );
+						needsUpdate = true;
+						break;
+
+					case scope.keys.RIGHT:
+						pan( - scope.keyPanSpeed, 0 );
+						needsUpdate = true;
+						break;
+
+				}
+
+				if ( needsUpdate ) {
+
+					// prevent the browser from scrolling on cursor keys
+					event.preventDefault();
+					scope.update();
+
+				}
+
+			}
+
+			function handleTouchStartRotate( event ) {
+
+				if ( event.touches.length == 1 ) {
+
+					rotateStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+
+				} else {
+
+					const x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
+					const y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+					rotateStart.set( x, y );
+
+				}
+
+			}
+
+			function handleTouchStartPan( event ) {
+
+				if ( event.touches.length == 1 ) {
+
+					panStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+
+				} else {
+
+					const x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
+					const y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+					panStart.set( x, y );
+
+				}
+
+			}
+
+			function handleTouchStartDolly( event ) {
+
+				const dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+				const dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+				const distance = Math.sqrt( dx * dx + dy * dy );
+				dollyStart.set( 0, distance );
+
+			}
+
+			function handleTouchStartDollyPan( event ) {
+
+				if ( scope.enableZoom ) handleTouchStartDolly( event );
+				if ( scope.enablePan ) handleTouchStartPan( event );
+
+			}
+
+			function handleTouchStartDollyRotate( event ) {
+
+				if ( scope.enableZoom ) handleTouchStartDolly( event );
+				if ( scope.enableRotate ) handleTouchStartRotate( event );
+
+			}
+
+			function handleTouchMoveRotate( event ) {
+
+				if ( event.touches.length == 1 ) {
+
+					rotateEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+
+				} else {
+
+					const x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
+					const y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+					rotateEnd.set( x, y );
+
+				}
+
+				rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( scope.rotateSpeed );
+				const element = scope.domElement;
+				rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
+
+				rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+				rotateStart.copy( rotateEnd );
+
+			}
+
+			function handleTouchMovePan( event ) {
+
+				if ( event.touches.length == 1 ) {
+
+					panEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+
+				} else {
+
+					const x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
+					const y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+					panEnd.set( x, y );
+
+				}
+
+				panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
+				pan( panDelta.x, panDelta.y );
+				panStart.copy( panEnd );
+
+			}
+
+			function handleTouchMoveDolly( event ) {
+
+				const dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+				const dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+				const distance = Math.sqrt( dx * dx + dy * dy );
+				dollyEnd.set( 0, distance );
+				dollyDelta.set( 0, Math.pow( dollyEnd.y / dollyStart.y, scope.zoomSpeed ) );
+				dollyOut( dollyDelta.y );
+				dollyStart.copy( dollyEnd );
+
+			}
+
+			function handleTouchMoveDollyPan( event ) {
+
+				if ( scope.enableZoom ) handleTouchMoveDolly( event );
+				if ( scope.enablePan ) handleTouchMovePan( event );
+
+			}
+
+			function handleTouchMoveDollyRotate( event ) {
+
+				if ( scope.enableZoom ) handleTouchMoveDolly( event );
+				if ( scope.enableRotate ) handleTouchMoveRotate( event );
+
+			}
+
+			function handleTouchEnd( ) { // no-op
+			} //
+			// event handlers - FSM: listen for events and reset state
+			//
+
+
+			function onPointerDown( event ) {
+
+				if ( scope.enabled === false ) return;
+
+				switch ( event.pointerType ) {
+
+					case 'mouse':
+					case 'pen':
+						onMouseDown( event );
+						break;
+        // TODO touch
+
+				}
+
+			}
+
+			function onPointerMove( event ) {
+
+				if ( scope.enabled === false ) return;
+
+				switch ( event.pointerType ) {
+
+					case 'mouse':
+					case 'pen':
+						onMouseMove( event );
+						break;
+        // TODO touch
+
+				}
+
+			}
+
+			function onPointerUp( event ) {
+
+				switch ( event.pointerType ) {
+
+					case 'mouse':
+					case 'pen':
+						onMouseUp( event );
+						break;
+        // TODO touch
+
+				}
+
+			}
+
+			function onMouseDown( event ) {
+
+				// Prevent the browser from scrolling.
+				event.preventDefault(); // Manually set the focus since calling preventDefault above
+				// prevents the browser from setting it automatically.
+
+				scope.domElement.focus ? scope.domElement.focus() : window.focus();
+				let mouseAction;
+
+				switch ( event.button ) {
+
+					case 0:
+						mouseAction = scope.mouseButtons.LEFT;
+						break;
+
+					case 1:
+						mouseAction = scope.mouseButtons.MIDDLE;
+						break;
+
+					case 2:
+						mouseAction = scope.mouseButtons.RIGHT;
+						break;
+
+					default:
+						mouseAction = - 1;
+
+				}
+
+				switch ( mouseAction ) {
+
+					case THREE.MOUSE.DOLLY:
+						if ( scope.enableZoom === false ) return;
+						handleMouseDownDolly( event );
+						state = STATE.DOLLY;
+						break;
+
+					case THREE.MOUSE.ROTATE:
+						if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+
+							if ( scope.enablePan === false ) return;
+							handleMouseDownPan( event );
+							state = STATE.PAN;
+
+						} else {
+
+							if ( scope.enableRotate === false ) return;
+							handleMouseDownRotate( event );
+							state = STATE.ROTATE;
+
+						}
+
+						break;
+
+					case THREE.MOUSE.PAN:
+						if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+
+							if ( scope.enableRotate === false ) return;
+							handleMouseDownRotate( event );
+							state = STATE.ROTATE;
+
+						} else {
+
+							if ( scope.enablePan === false ) return;
+							handleMouseDownPan( event );
+							state = STATE.PAN;
+
+						}
+
+						break;
+
+					default:
+						state = STATE.NONE;
+
+				}
+
+				if ( state !== STATE.NONE ) {
+
+					scope.domElement.ownerDocument.addEventListener( 'pointermove', onPointerMove );
+					scope.domElement.ownerDocument.addEventListener( 'pointerup', onPointerUp );
+					scope.dispatchEvent( _startEvent );
+
+				}
+
+			}
+
+			function onMouseMove( event ) {
+
+				if ( scope.enabled === false ) return;
+				event.preventDefault();
+
+				switch ( state ) {
+
+					case STATE.ROTATE:
+						if ( scope.enableRotate === false ) return;
+						handleMouseMoveRotate( event );
+						break;
+
+					case STATE.DOLLY:
+						if ( scope.enableZoom === false ) return;
+						handleMouseMoveDolly( event );
+						break;
+
+					case STATE.PAN:
+						if ( scope.enablePan === false ) return;
+						handleMouseMovePan( event );
+						break;
+
+				}
+
+			}
+
+			function onMouseUp( event ) {
+
+				scope.domElement.ownerDocument.removeEventListener( 'pointermove', onPointerMove );
+				scope.domElement.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
+				if ( scope.enabled === false ) return;
+				handleMouseUp( event );
+				scope.dispatchEvent( _endEvent );
+				state = STATE.NONE;
+
+			}
+
+			function onMouseWheel( event ) {
+
+				if ( scope.enabled === false || scope.enableZoom === false || state !== STATE.NONE && state !== STATE.ROTATE ) return;
+				event.preventDefault();
+				scope.dispatchEvent( _startEvent );
+				handleMouseWheel( event );
+				scope.dispatchEvent( _endEvent );
+
+			}
+
+			function onKeyDown( event ) {
+
+				if ( scope.enabled === false || scope.enablePan === false ) return;
+				handleKeyDown( event );
+
+			}
+
+			function onTouchStart( event ) {
+
+				if ( scope.enabled === false ) return;
+				event.preventDefault(); // prevent scrolling
+
+				switch ( event.touches.length ) {
+
+					case 1:
+						switch ( scope.touches.ONE ) {
+
+							case THREE.TOUCH.ROTATE:
+								if ( scope.enableRotate === false ) return;
+								handleTouchStartRotate( event );
+								state = STATE.TOUCH_ROTATE;
+								break;
+
+							case THREE.TOUCH.PAN:
+								if ( scope.enablePan === false ) return;
+								handleTouchStartPan( event );
+								state = STATE.TOUCH_PAN;
+								break;
+
+							default:
+								state = STATE.NONE;
+
+						}
+
+						break;
+
+					case 2:
+						switch ( scope.touches.TWO ) {
+
+							case THREE.TOUCH.DOLLY_PAN:
+								if ( scope.enableZoom === false && scope.enablePan === false ) return;
+								handleTouchStartDollyPan( event );
+								state = STATE.TOUCH_DOLLY_PAN;
+								break;
+
+							case THREE.TOUCH.DOLLY_ROTATE:
+								if ( scope.enableZoom === false && scope.enableRotate === false ) return;
+								handleTouchStartDollyRotate( event );
+								state = STATE.TOUCH_DOLLY_ROTATE;
+								break;
+
+							default:
+								state = STATE.NONE;
+
+						}
+
+						break;
+
+					default:
+						state = STATE.NONE;
+
+				}
+
+				if ( state !== STATE.NONE ) {
+
+					scope.dispatchEvent( _startEvent );
+
+				}
+
+			}
+
+			function onTouchMove( event ) {
+
+				if ( scope.enabled === false ) return;
+				event.preventDefault(); // prevent scrolling
+
+				switch ( state ) {
+
+					case STATE.TOUCH_ROTATE:
+						if ( scope.enableRotate === false ) return;
+						handleTouchMoveRotate( event );
+						scope.update();
+						break;
+
+					case STATE.TOUCH_PAN:
+						if ( scope.enablePan === false ) return;
+						handleTouchMovePan( event );
+						scope.update();
+						break;
+
+					case STATE.TOUCH_DOLLY_PAN:
+						if ( scope.enableZoom === false && scope.enablePan === false ) return;
+						handleTouchMoveDollyPan( event );
+						scope.update();
+						break;
+
+					case STATE.TOUCH_DOLLY_ROTATE:
+						if ( scope.enableZoom === false && scope.enableRotate === false ) return;
+						handleTouchMoveDollyRotate( event );
+						scope.update();
+						break;
+
+					default:
+						state = STATE.NONE;
+
+				}
+
+			}
+
+			function onTouchEnd( event ) {
+
+				if ( scope.enabled === false ) return;
+				handleTouchEnd( event );
+				scope.dispatchEvent( _endEvent );
+				state = STATE.NONE;
+
+			}
+
+			function onContextMenu( event ) {
+
+				if ( scope.enabled === false ) return;
+				event.preventDefault();
+
+			} //
+
+
+			scope.domElement.addEventListener( 'contextmenu', onContextMenu );
+			scope.domElement.addEventListener( 'pointerdown', onPointerDown );
+			scope.domElement.addEventListener( 'wheel', onMouseWheel, {
+				passive: false
+			} );
+			scope.domElement.addEventListener( 'touchstart', onTouchStart, {
+				passive: false
+			} );
+			scope.domElement.addEventListener( 'touchend', onTouchEnd );
+			scope.domElement.addEventListener( 'touchmove', onTouchMove, {
+				passive: false
+			} ); // force an update at start
+
+			this.update();
+
+		}
+
+	} // This set of controls performs orbiting, dollying (zooming), and panning.
+	// Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
+	// This is very similar to OrbitControls, another set of touch behavior
+	//
+	//    Orbit - right mouse, or left mouse + ctrl/meta/shiftKey / touch: two-finger rotate
+	//    Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
+	//    Pan - left mouse, or arrow keys / touch: one-finger move
+
+
+	class MapControls extends OrbitControls {
+
+		constructor( object, domElement ) {
+
+			super( object, domElement );
+			this.screenSpacePanning = false; // pan orthogonal to world-space direction camera.up
+
+			this.mouseButtons.LEFT = THREE.MOUSE.PAN;
+			this.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+			this.touches.ONE = THREE.TOUCH.PAN;
+			this.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
+
+		}
+
+	}
+
+	THREE.MapControls = MapControls;
+	THREE.OrbitControls = OrbitControls;
+
+} )();
+
+}
+</script>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id), stage=$('stage');
+const fail=message=>{$('error').style.display='grid';$('error').firstElementChild.textContent=message;$('corner').hidden=true;['prev','next'].forEach(id=>$(id).disabled=true)};
+if(!window.THREE){fail('Không tải được thư viện 3D. Hãy kiểm tra kết nối mạng và tải lại trang.');return;}
+let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}catch(e){fail('Thiết bị hoặc trình duyệt chưa hỗ trợ WebGL. Hãy thử bật tăng tốc phần cứng hoặc dùng trình duyệt khác.');return;}
+const T=THREE, clamp=T.MathUtils.clamp, lerp=T.MathUtils.lerp, PI=Math.PI;
+const reducedQuery=matchMedia('(prefers-reduced-motion: reduce)');let reduced=reducedQuery.matches;
+reducedQuery.addEventListener('change',e=>{reduced=e.matches;controls.enableDamping=!reduced;wake()});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputEncoding=T.sRGBEncoding;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.90;
+renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','Sách pop-up 3D. Dùng phím mũi tên trái, phải để chuyển trang.');stage.prepend(renderer.domElement);
+const scene=new T.Scene(), camera=new T.PerspectiveCamera(40,1,.1,100);
+const controls=new T.OrbitControls(camera,renderer.domElement);controls.enablePan=false;controls.enableDamping=!reduced;controls.dampingFactor=.09;controls.rotateSpeed=.55;controls.zoomSpeed=.6;controls.minPolarAngle=PI/6;controls.maxPolarAngle=PI*70/180;const centerAz=-.43;controls.minAzimuthAngle=centerAz-PI*35/180;controls.maxAzimuthAngle=centerAz+PI*35/180;
+const hemi=new T.HemisphereLight(0xf6fbff,0xb9b5a7,.85);scene.add(hemi);
+const sun=new T.DirectionalLight(0xfff9ea,1.6);sun.position.set(-6,11,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9,near:1,far:35});sun.shadow.bias=-.00022;sun.shadow.normalBias=.018;sun.shadow.radius=3;sun.target.position.set(0,1,2);scene.add(sun,sun.target);
+const fill=new T.DirectionalLight(0xffdfc0,.25);fill.position.set(6,4,3);scene.add(fill);
+const book=new T.Group();book.position.y=.25;book.rotation.x=-.025;scene.add(book);
+const W=7.6,D=5.5,THICK=.03,OPEN=PI*98/180,EPS=.012;
+const geoCache=new Map(),ownedTextures=[];
+function paperGeometry(w,h,th=THICK){const key=[w,h,th].join(':');if(geoCache.has(key))return geoCache.get(key);const s=new T.Shape();s.moveTo(-w/2,0);s.lineTo(w/2,0);s.lineTo(w/2,h);s.lineTo(-w/2,h);s.closePath();const g=new T.ExtrudeGeometry(s,{depth:th,bevelEnabled:false,steps:1});g.translate(0,0,-th/2);const p=g.attributes.position,u=g.attributes.uv;for(let i=0;i<p.count;i++)u.setXY(i,(p.getX(i)+w/2)/w,p.getY(i)/h);u.needsUpdate=true;geoCache.set(key,g);return g;}
+function canvasTexture(draw,w=1024,h=768){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;tx.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);ownedTextures.push(tx);return tx;}
+const noise=canvasTexture((ctx,w,h)=>{const a=ctx.createImageData(w,h);let seed=13579;for(let i=0;i<a.data.length;i+=4){seed=(seed*16807)%2147483647;const n=125+(seed%28);a.data[i]=a.data[i+1]=a.data[i+2]=n;a.data[i+3]=255;}ctx.putImageData(a,0,0)},128,128);noise.encoding=T.LinearEncoding;noise.wrapS=noise.wrapT=T.RepeatWrapping;noise.repeat.set(3,3);
+function wrap(ctx,text,width){const lines=[];for(const para of String(text||'').split('\n')){let line='';for(const word of para.split(/\s+/)){const test=line?line+' '+word:word;if(ctx.measureText(test).width>width&&line){lines.push(line);line=word;}else line=test;}lines.push(line);}return lines;}
+function textBlock(ctx,text,x,y,width,height,size=30,center=false){let lines;do{ctx.font=`${size}px ${THEME.font}`;lines=wrap(ctx,text,width);if(lines.length*size*1.45<=height)break;size--;}while(size>12);ctx.textAlign=center?'center':'left';ctx.textBaseline='top';lines.forEach((l,i)=>{if(i*size*1.45<height)ctx.fillText(l,center?x+width/2:x,y+i*size*1.45)});}
+function texture(source,draw){if(typeof source==='function')return canvasTexture(source);const tx=canvasTexture(draw);if(typeof source==='string'&&/^data:image\//i.test(source)){const im=new Image();im.onload=()=>{const c=tx.image,ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(im,0,0,c.width,c.height);tx.needsUpdate=true;wake()};im.onerror=()=>console.warn('Texture data URI không hợp lệ; giữ placeholder.');im.src=source;}return tx;}
+function material(color,map=null,trans=false){return new T.MeshStandardMaterial({color,map,roughness:.85,metalness:0,bumpMap:noise,bumpScale:.009,transparent:trans,opacity:trans?.62:1,depthWrite:!trans,side:T.DoubleSide});}
+const edgeMat=material(THEME.edge),plain=material(THEME.paper),coverMat=material(THEME.cover);
+function sheet(w,h,mat,th=THICK){const mesh=new T.Mesh(paperGeometry(w,h,th),[mat,edgeMat]);mesh.castShadow=true;mesh.receiveShadow=true;return mesh;}
+const table=new T.Mesh(new T.PlaneGeometry(200,200),material(THEME.table));table.rotation.x=-PI/2;table.receiveShadow=true;scene.add(table);
+const baseCover=sheet(W+.22,D+.15,coverMat,.085);baseCover.rotation.x=PI/2;baseCover.position.set(0,-.12,-.03);book.add(baseCover);
+// Both fore-edge stacks remain visible; pages are thin extrusions, not a block.
+for(let i=0;i<7;i++){const p=sheet(W+.025*i,D+.015*i,plain,.012);p.rotation.x=PI/2;p.position.set((i-3)*.008,-.09+i*.012,0);book.add(p);}
+const base=sheet(W,D,plain);base.rotation.x=PI/2;book.add(base);
+const backPivot=new T.Group();backPivot.position.set(0,.40,0);book.add(backPivot);
+const backCover=sheet(W+.18,D+.1,coverMat,.075);backCover.position.z=-.085;backPivot.add(backCover);
+for(let i=0;i<6;i++){const p=sheet(W+i*.014,D+i*.009,plain,.009);p.position.set(-.015*i,0,-.02-i*.009);backPivot.add(p);}
+const backdrop=sheet(W,D,plain);backPivot.add(backdrop);
+const spine=new T.Mesh(new T.CylinderGeometry(.12,.12,W+.1,16),coverMat);spine.rotation.z=PI/2;spine.position.y=-.025;spine.castShadow=true;book.add(spine);
+const contactMap=canvasTexture((ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,2,w/2,h/2,w/2);g.addColorStop(0,'rgba(29,39,37,.30)');g.addColorStop(1,'rgba(29,39,37,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)},128,128);
+const contactMat=new T.MeshBasicMaterial({map:contactMap,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
+const pages=[{...BOOK_CONFIG.cover,kind:'cover'},...BOOK_CONFIG.scenes.map(s=>({...s,kind:'scene'})),{...BOOK_CONFIG.end,kind:'end'}];
+const spreads=pages.map((s,index)=>{
+ const group=new T.Group();book.add(group);group.visible=false;
+ const bg=texture(s.background?.texture||s.texture,(ctx,w,h)=>{ctx.fillStyle=s.background?.color||THEME.placeholder[index%THEME.placeholder.length];ctx.fillRect(0,0,w,h);ctx.strokeStyle='#ffffff70';ctx.lineWidth=2;ctx.strokeRect(40,40,w-80,h-80);ctx.fillStyle=THEME.ink;textBlock(ctx,s.kind==='scene'?'PHÔNG NỀN':s.title,80,h*.34,w-160,150,56,true);if(s.kind!=='scene')textBlock(ctx,s.text,80,h*.57,w-160,120,26,true);});
+ if(s.kind!=='scene')bg.flipY=false;
+ const pageTex=texture(null,(ctx,w,h)=>{ctx.fillStyle=THEME.paper;ctx.fillRect(0,0,w,h);ctx.strokeStyle='#b6c1b8';ctx.beginPath();ctx.moveTo(80,h*.65);ctx.lineTo(w-80,h*.65);ctx.stroke();ctx.fillStyle=THEME.ink;ctx.font=`bold 22px ${THEME.font}`;ctx.fillText(s.title.toUpperCase(),80,h*.70);textBlock(ctx,s.kind==='scene'?s.text:'',80,h*.75,w-160,h*.19,23);ctx.font=`18px ${THEME.font}`;ctx.textAlign='right';ctx.fillText(String(index+1).padStart(2,'0'),w-45,h-27);});
+ pageTex.flipY=false;
+ const sorted=[...(s.layers||[])].sort((a,b)=>a.depth-b.depth);
+ const layers=sorted.map((l,i)=>{
+   const width=clamp(l.width||1,.3,W-.4),depth=clamp(l.depth||.5,.3,3.0),height=clamp(l.height||1,.3,D-depth-.25),x=clamp(l.x||0,-W/2+width/2+.12,W/2-width/2-.12),y=.055+(sorted.length-i)*.037;
+   const hinge=new T.Group();hinge.position.set(x,y,depth);group.add(hinge);
+   const tx=texture(l.texture,(ctx,w,h)=>{ctx.fillStyle=l.color||THEME.placeholder[i%THEME.placeholder.length];ctx.fillRect(0,0,w,h);ctx.strokeStyle='#ffffff80';ctx.lineWidth=3;ctx.strokeRect(30,30,w-60,h-60);ctx.fillStyle=THEME.ink;textBlock(ctx,l.name||`LỚP ${i+1}`,60,h*.30,w-120,h*.5,110,true);});
+   const face=material('#ffffff',tx,!!l.translucent),panel=sheet(width,height,face);panel.renderOrder=l.translucent?10+i:0;
+   if(l.translucent){panel.customDepthMaterial=new T.MeshDepthMaterial({depthPacking:T.RGBADepthPacking,side:T.DoubleSide});panel.customDepthMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <alphatest_fragment>','#include <alphatest_fragment>\nif (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898,78.233))) * 43758.5453) > 0.62) discard;');};}hinge.add(panel);
+   const tabH=clamp(l.tabHeight||.2,.1,.4),tab=sheet(width*.65,tabH,plain,.012);tab.rotation.x=PI/2;tab.position.set(x,.024,depth-tabH);group.add(tab);
+   const riser=sheet(width*.65,1,plain,.012);bar(riser,new T.Vector3(x,.028,depth-tabH*.5),new T.Vector3(x,y,depth));group.add(riser);
+   // Two scored strips form a V gusset. The remote anchor is physically
+   // attached to the turning back leaf, not to an invisible world position.
+   const r=Math.min(height*.52,.72),linkLength=Math.hypot(depth,.40-y)+.018;
+   const links=[];for(const side of [-1,1]){const a=sheet(.10,1,plain,.012),b=sheet(.10,1,plain,.012);group.add(a,b);links.push({a,b,x:x+side*width*.29});}
+   const shadow=new T.Mesh(new T.PlaneGeometry(width*1.15,.6),contactMat);shadow.rotation.x=-PI/2;shadow.position.set(x,.024,depth+.10);group.add(shadow);
+   return {config:l,width,height,depth,x,y,hinge,panel,links,r,linkLength,shadow,angle:0,velocity:0,target:0};
+ });
+ return {group,layers,bg,bgMat:material('#ffffff',bg),baseMat:material('#ffffff',pageTex),kind:s.kind,title:s.title};
+});
+// Flexible leaf: segmented through its length; closed manifold with real edges.
+const turnGeometry=new T.BoxGeometry(W,THICK,D,12,1,48);turnGeometry.translate(0,0,D/2);const rest=turnGeometry.attributes.position.array.slice();
+const turnLeaf=new T.Mesh(turnGeometry,[edgeMat,edgeMat,plain,plain,edgeMat,edgeMat]);turnLeaf.castShadow=true;turnLeaf.receiveShadow=true;turnLeaf.visible=false;book.add(turnLeaf);
+const turnShadow=new T.Mesh(new T.PlaneGeometry(W+1,D+1),new T.MeshBasicMaterial({map:contactMap,transparent:true,depthWrite:false,opacity:.3}));turnShadow.rotation.x=-PI/2;turnShadow.position.set(0,.018,D/2);book.add(turnShadow);
+let current=clamp(BOOK_CONFIG.initialPage||0,0,pages.length-1),active=spreads[current],phi=active.kind==='scene'?OPEN:0,transition=null,raf=0,lastTime=0,elapsed=0,settledFrames=0,drag=null,frameCount=0,frameTime=0,inFrame=false;
+function applyPage(index){spreads.forEach((s,i)=>s.group.visible=i===index);active=spreads[index];backdrop.material=[active.bgMat,edgeMat];backCover.material=[active.kind==='scene'?coverMat:active.bgMat,edgeMat];base.material=[active.baseMat,edgeMat];}
+function setUI(){const p=pages[current];$('sceneName').textContent=p.title;$('count').textContent=`${current+1} / ${pages.length}`;$('prev').disabled=current===0||!!transition;$('next').disabled=current===pages.length-1||!!transition;Array.from($('pages').children).forEach((b,i)=>{b.setAttribute('aria-current',String(current===i));b.disabled=!!transition;});$('corner').setAttribute('aria-label',current===pages.length-1?'Kéo góc trang để lật về trước':'Kéo góc trang để lật tiếp');}
+pages.forEach((p,i)=>{const b=document.createElement('button');b.setAttribute('aria-label',p.title);b.onclick=()=>goTo(i);$('pages').append(b);});
+function smooth(x){x=clamp(x,0,1);return x*x*(3-2*x)}
+function start(to,manual=false){if(transition||to<0||to>=pages.length||to===current)return false;transition={from:current,to,p:0,v:0,target:manual?0:1,manual,swapped:false,direction:Math.sign(to-current)};elapsed=0;setUI();wake();return true;}
+function goTo(to){start(to,false)}
+function updateTransition(dt){if(!transition)return;const tr=transition;if(!tr.manual){if(reduced){tr.p=tr.target;tr.v=0}else{const a=(tr.target-tr.p)*36-tr.v*10;tr.v+=a*dt;tr.p=clamp(tr.p+tr.v*dt,0,1)}}const p=tr.p;
+ // Close -> turn the curved sheet -> open. Paper linkages fold before
+ // the next sheet travels over them. All active cutouts remain below it.
+ const old=spreads[tr.from],next=spreads[tr.to];
+ const closing=1-smooth(p/.34),opening=smooth((p-.66)/.34);
+ phi=(p<.5?(old.kind==='scene'?OPEN*closing:0):(next.kind==='scene'?OPEN*opening:0));
+ const swapped=p>=.5;if(swapped!==tr.swapped){tr.swapped=swapped;applyPage(swapped?tr.to:tr.from);active.layers.forEach(l=>{l.angle=0;l.velocity=0});}
+ turnLeaf.visible=p>.34&&p<.66;
+ if(turnLeaf.visible){backPivot.visible=false;const t=clamp((p-.34)/.32,0,1);deformPage(tr.direction>0?t:1-t);turnLeaf.material=[edgeMat,edgeMat,old.baseMat,next.baseMat,edgeMat,edgeMat];}else backPivot.visible=true;
+ if(!tr.manual&&Math.abs(tr.p-tr.target)<.001&&Math.abs(tr.v)<.018){const done=tr.target===1;current=done?tr.to:tr.from;applyPage(current);phi=active.kind==='scene'?OPEN:0;turnLeaf.visible=false;backPivot.visible=true;transition=null;setUI();$('status').textContent=pages[current].title;}
+}
+function deformPage(t){const pos=turnGeometry.attributes.position;const angle=PI*t;const curl=Math.sin(PI*t)*.46;const stations=96,ys=new Float64Array(stations+1),zs=new Float64Array(stations+1);for(let i=1;i<=stations;i++){const u=(i-.5)/stations,b=angle+curl*u*u;ys[i]=ys[i-1]+Math.sin(b)*D/stations;zs[i]=zs[i-1]+Math.cos(b)*D/stations;}for(let i=0;i<pos.count;i++){const x=rest[i*3],off=rest[i*3+1],s=rest[i*3+2]/D,f=clamp(s,0,1)*stations,j=Math.min(stations-1,Math.floor(f)),q=f-j,b=angle+curl*s*s;pos.setXYZ(i,x, .48+lerp(ys[j],ys[j+1],q)+off*Math.cos(b),lerp(zs[j],zs[j+1],q)-off*Math.sin(b));}pos.needsUpdate=true;turnGeometry.computeVertexNormals();turnGeometry.computeBoundingSphere();}
+function bar(mesh,a,b){mesh.position.copy(a);const v=new T.Vector3().subVectors(b,a);mesh.scale.y=v.length();mesh.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());}
+function endpointDistance(l,a){const ay=.40+l.r*Math.sin(phi),az=l.r*Math.cos(phi),by=l.y+l.r*Math.sin(a),bz=l.depth+l.r*Math.cos(a);return Math.hypot(by-ay,bz-az);}
+const angleHistory=[];let physicsTime=0;
+function updateLayers(dt){const list=active.layers;physicsTime+=dt;angleHistory.push({time:physicsTime,angle:phi});while(angleHistory.length>1&&angleHistory[0].time<physicsTime-1)angleHistory.shift();
+ for(let i=0;i<list.length;i++){const l=list[i],cfg=l.config;const dir=transition?(transition.p<.5?-1:1):1;
+   const delay=clamp(cfg.delay||0,0,.7),lag=dir>0?delay:Math.max(0,.35-delay);
+   const delayed=angleHistory.find(h=>h.time>=physicsTime-lag)||angleHistory[0];
+   l.target=Math.max(0,Math.min(delayed.angle,phi)-.018);
+   if(reduced){l.angle=l.target;l.velocity=0;}else{const k=clamp(cfg.stiffness||120,40,240),damping=2*Math.sqrt(k)*.70;l.velocity+=(k*(l.target-l.angle)-damping*l.velocity)*dt;l.angle+=l.velocity*dt;}
+   const oldAngle=l.angle;l.angle=clamp(l.angle,0,phi);
+   // Inextensible V-strip reach constraint: solve the reachable angle
+   // toward the driving leaf with bisection, never stretch either strip.
+   if(endpointDistance(l,l.angle)>l.linkLength){let lo=l.angle,hi=phi;for(let n=0;n<15;n++){const mid=(lo+hi)/2;if(endpointDistance(l,mid)>l.linkLength)lo=mid;else hi=mid;}l.angle=hi;l.target=Math.max(l.target,hi);}
+   if(l.angle!==oldAngle)l.velocity=0;
+ }
+ // Enforce the collision inequality from front to back without violating reach.
+ for(let i=list.length-2;i>=0;i--)if(list[i].angle<list[i+1].angle){list[i].angle=list[i+1].angle;list[i].velocity=Math.max(0,list[i].velocity);}
+ for(const l of list){
+   l.hinge.rotation.x=PI/2-l.angle;
+   for(const pair of l.links){const a=new T.Vector3(pair.x,.40+l.r*Math.sin(phi),l.r*Math.cos(phi));const b=new T.Vector3(pair.x,l.y+l.r*Math.sin(l.angle),l.depth+l.r*Math.cos(l.angle));const v=new T.Vector3().subVectors(b,a),len=v.length();const half=l.linkLength/2,bend=Math.sqrt(Math.max(0,half*half-len*len/4));const m=new T.Vector3().addVectors(a,b).multiplyScalar(.5);const perpendicular=new T.Vector3(0,-v.z,v.y).normalize();m.addScaledVector(perpendicular,bend);bar(pair.a,a,m);bar(pair.b,m,b);}
+   l.shadow.visible=l.angle>.05;
+ }
+ backPivot.rotation.x=PI/2-phi;
+}
+function projectCorner(){const v=new T.Vector3(W/2-.16,.15,D-.12);book.localToWorld(v);v.project(camera);const w=stage.clientWidth,h=stage.clientHeight;$('corner').style.transform=`translate(${clamp((v.x*.5+.5)*w-22,4,w-48)}px,${clamp((-v.y*.5+.5)*h-22,4,h-48)}px)`;$('corner').style.visibility=transition&&!drag?'hidden':'visible';}
+function resetCamera(){const aspect=stage.clientWidth/stage.clientHeight;const r=Math.max(16,5.1/(Math.tan(PI/9)*aspect));camera.position.set(Math.sin(centerAz)*r*.819,2+r*.574,2+Math.cos(centerAz)*r*.819);controls.target.set(0,2,2);controls.minDistance=r*.85;controls.maxDistance=r*1.28;controls.update();wake();}
+function resize(){camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();renderer.setSize(stage.clientWidth,stage.clientHeight);resetCamera();}
+let themeDark=matchMedia('(prefers-color-scheme: dark)').matches;
+function theme(){document.body.dataset.mode=themeDark?'dark':'light';for(const [k,v]of Object.entries(THEME[themeDark?'dark':'light']))document.documentElement.style.setProperty('--'+k,v);document.body.style.fontFamily=THEME.font;}
+$('mode').onclick=()=>{themeDark=!themeDark;theme()};$('helpBtn').onclick=()=>{$('help').hidden=!$('help').hidden;$('helpBtn').setAttribute('aria-expanded',String(!$('help').hidden))};$('reset').onclick=resetCamera;
+$('prev').onclick=()=>goTo(current-1);$('next').onclick=()=>goTo(current+1);
+document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();goTo(current+(e.key==='ArrowRight'?1:-1));}if(e.key==='Escape')$('help').hidden=true;});
+function dragStart(e){if(e.button!==undefined&&e.button!==0)return;const to=current===pages.length-1?current-1:current+1;if(!start(to,true))return;e.preventDefault();e.stopPropagation();controls.enabled=false;drag={id:e.pointerId,x:e.clientX,y:e.clientY,lastP:0,lastT:performance.now(),moved:false,source:e.currentTarget};e.currentTarget.setPointerCapture(e.pointerId);}
+function dragMove(e){if(!drag||drag.id!==e.pointerId||!transition)return;e.preventDefault();const distance=Math.max(stage.clientHeight*.46,150);const delta=(drag.y-e.clientY)+.55*(drag.x-e.clientX);const p=clamp(delta/distance,0,1);const now=performance.now(),dt=Math.max(.01,(now-drag.lastT)/1000);transition.v=clamp((p-drag.lastP)/dt,-1.5,1.5);transition.p=p;drag.moved ||= Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7;drag.lastP=p;drag.lastT=now;wake();}
+function dragEnd(e,cancel=false){if(!drag||drag.id!==e.pointerId)return;e.preventDefault();if(transition){transition.manual=false;transition.target=cancel?0:(!drag.moved||transition.p>=.40?1:0);if(performance.now()-drag.lastT>100)transition.v=0;}if(drag.source.hasPointerCapture(e.pointerId))drag.source.releasePointerCapture(e.pointerId);drag=null;controls.enabled=true;wake();}
+$('corner').addEventListener('pointerdown',dragStart);$('corner').addEventListener('pointermove',dragMove);$('corner').addEventListener('pointerup',e=>dragEnd(e));$('corner').addEventListener('pointercancel',e=>dragEnd(e,true));$('corner').addEventListener('click',e=>{if(e.detail===0)goTo(current===pages.length-1?current-1:current+1)});
+// The visible paper corner is also draggable, not just its HTML affordance.
+renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-r.left-22,e.clientY-r.top-22)<55)dragStart(e)},true);
+renderer.domElement.addEventListener('pointermove',dragMove);renderer.domElement.addEventListener('pointerup',e=>dragEnd(e));renderer.domElement.addEventListener('pointercancel',e=>dragEnd(e,true));
+function wake(){settledFrames=0;if(!document.hidden&&!raf){lastTime=performance.now();raf=requestAnimationFrame(tick)}}
+function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';
+ // Adaptive resolution keeps the 2048 shadow map and reduces fill cost first.
+ if(frameCount>120&&frameTime/frameCount>1/43&&renderer.getPixelRatio()>1){renderer.setPixelRatio(Math.max(1,renderer.getPixelRatio()-.25));renderer.setSize(stage.clientWidth,stage.clientHeight);frameCount=0;frameTime=0;}
+ const moving=transition||drag||active.layers.some(l=>Math.abs(l.velocity)>.002||Math.abs(l.angle-l.target)>.002);
+ settledFrames=moving?0:settledFrames+1;inFrame=false;if(!document.hidden&&(moving||settledFrames<80))raf=requestAnimationFrame(tick);
+}
+controls.addEventListener('change',()=>{settledFrames=0;if(!inFrame)wake()});controls.addEventListener('start',wake);
+document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;if(drag)dragEnd({pointerId:drag.id,preventDefault(){}},true);}else wake();});
+renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);raf=0;fail('Kết nối đồ họa bị gián đoạn. Hãy tải lại trang để tiếp tục.');});
+window.addEventListener('resize',resize);theme();applyPage(current);active.layers.forEach(l=>l.angle=0);setUI();resize();wake();
+// Read-only diagnostics for validation; no scene state mutation is exposed.
+window.POPUP_DIAGNOSTICS=()=>({page:current,pages:pages.length,transition:transition?{progress:transition.p,target:transition.target}:null,bookAngle:phi,layerAngles:active.layers.map(l=>l.angle),linkErrors:active.layers.map(l=>Math.max(0,endpointDistance(l,l.angle)-l.linkLength)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,pixelRatio:renderer.getPixelRatio(),reducedMotion:reduced,threeRevision:T.REVISION});
+})();
+</script>
+</body>
+</html>
