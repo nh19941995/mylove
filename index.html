@@ -17,7 +17,7 @@
  <footer><button id="prev" aria-label="Lật về trang trước">Trang trước</button><div class="pager"><div id="pages" aria-label="Chọn trang"></div><span id="count"></span></div><button id="next" aria-label="Lật sang trang tiếp theo">Trang tiếp</button></footer>
  <div id="status" role="status" aria-live="polite"></div>
 </div>
-<dialog id="layerSettings" class="settings-dialog" aria-labelledby="settingsTitle"><button id="closeSettings" class="settings-close" aria-label="Đóng cài đặt">×</button><h2 id="settingsTitle">Bố trí lớp giấy</h2><label for="openingMode">Kiểu mở sách</label><select id="openingMode"><option value="90">90° — trang sau dựng đứng</option><option value="180">180° — hai trang mở phẳng</option></select><p id="mechanismHint"></p><label for="settingScene">Cảnh áp dụng</label><select id="settingScene"></select><label for="layerCount">Số lớp <output id="countOutput" for="layerCount"></output></label><input id="layerCount" type="range" min="1" max="8" step="1"><label for="layerGap">Khoảng cách giữa các lớp <output id="gapOutput" for="layerGap"></output></label><input id="layerGap" type="range" min="0.75" max="5" step="0.05"><p id="spacingHint">Khoảng cách được đo dọc trang, từ gáy về phía trước.</p><p>Cài đặt được lưu riêng cho từng cảnh trên trình duyệt này. Các lớp thêm mới dùng hình giữ chỗ.</p><p id="settingsStatus" role="status" aria-live="polite"></p><div class="settings-actions"><button id="resetLayers">Mặc định</button><button id="applyLayers" class="primary">Áp dụng</button></div></dialog>
+<dialog id="layerSettings" class="settings-dialog" aria-labelledby="settingsTitle"><button id="closeSettings" class="settings-close" aria-label="Đóng cài đặt">×</button><h2 id="settingsTitle">Bố trí lớp giấy</h2><label for="openingMode">Kiểu mở sách</label><select id="openingMode"><option value="90">90° — trang sau dựng đứng</option><option value="180">180° — hai trang mở phẳng</option></select><p id="mechanismHint"></p><label for="settingScene">Cảnh áp dụng</label><select id="settingScene"></select><label for="layerCount">Số lớp <output id="countOutput" for="layerCount"></output></label><input id="layerCount" type="range" min="1" max="8" step="1"><label for="layerGap">Khoảng cách giữa các lớp <output id="gapOutput" for="layerGap"></output></label><input id="layerGap" type="range" min="0.75" max="5" step="0.05"><label for="layerOffset">Dịch lớp về lề dưới <output id="offsetOutput" for="layerOffset"></output></label><input id="layerOffset" type="range" min="0" max="10" step="0.05" value="0"><p id="offsetHint"></p><p id="spacingHint">Khoảng cách được đo dọc trang, từ gáy về phía trước.</p><p>Cài đặt được lưu riêng cho từng cảnh trên trình duyệt này. Các lớp thêm mới dùng hình giữ chỗ.</p><p id="settingsStatus" role="status" aria-live="polite"></p><div class="settings-actions"><button id="resetLayers">Mặc định</button><button id="applyLayers" class="primary">Áp dụng</button></div></dialog>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ================================================================
@@ -67,14 +67,29 @@ let BOOK_MODE='90';try{if(localStorage.getItem(MODE_KEY)==='180')BOOK_MODE='180'
 const DEFAULT_LAYOUTS=BOOK_CONFIG.scenes.map(s=>({layers:s.layers.map(l=>({...l}))}));
 let savedLayouts={};try{savedLayouts=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')||{};}catch(e){}
 function maxGapCm(count,mode=BOOK_MODE){return count<2?5:Math.min(5,Math.floor((mode==='180'?8.5:13.25)/(count-1)*20)/20);}
+function configuredLayers(index,count,gapCm){
+ const original=[...DEFAULT_LAYOUTS[index].layers].sort((a,b)=>a.depth-b.depth);
+ return Array.from({length:count},(_,i)=>({...original[i]||{name:`LỚP ${i+1} – giữ chỗ`,texture:null,width:1.1,height:1.5,x:((i%3)-1)*1.8,tabHeight:.20,color:THEME.placeholder[i%THEME.placeholder.length],stiffness:115},depth:.35+i*gapCm/5,delay:i*.045}));
+}
+// Common layout for the renderer AND settings limits. Offset is a rigid
+// translation of the entire construction, in cm, not a resize of its panels.
+function computeLayerLayout(scene,mode,offsetCm=scene.forwardOffset||0){
+ const bound=(x,a,b)=>Math.max(a,Math.min(b,x)),W=7.6,D=5.5,PW=W/2,S=Math.sin(70*Math.PI/180),C=Math.cos(70*Math.PI/180);
+ const sorted=[...(scene.layers||[])].sort((a,b)=>a.depth-b.depth);
+ let layers;
+ if(mode==='180'){
+  const preliminary=sorted.map(config=>{const bias=bound((config.x||0)/W,-.30,.30),width=Math.min(bound((config.width||1)*1.65,.6,W*.78),(PW-.35)/(.5+Math.abs(bias)));return {config,bias,width,lengths:[width*(.5-bias)/S,width*(.5+bias)/S]};});
+  const baseDepth=Math.max(.60,...preliminary.map(l=>Math.max(...l.lengths)*C+.08)),first=sorted[0]?.depth||0,span=sorted.length>1?sorted[sorted.length-1].depth-first:0,scale=span>0?Math.min(1,(3.25-baseDepth)/span):1;
+  layers=preliminary.map(l=>{const depth=baseDepth+((l.config.depth||.5)-first)*scale,height=bound(l.config.height||1,.3,Math.min(D-depth-.18,(PW-.12-Math.max(...l.lengths)*S)/C));return {...l,depth,height};});
+ }else layers=sorted.map(config=>{const width=bound(config.width||1,.3,W-.4),depth=bound(config.depth||.5,.3,3),height=bound(config.height||1,.3,D-depth-.25),x=bound(config.x||0,-W/2+width/2+.12,W/2-width/2-.12);return {config,width,depth,height,x};});
+ const margin=mode==='180'?.18:.25,maxUnits=layers.length?Math.max(0,Math.min(...layers.map(l=>D-margin-l.depth-l.height))):0;
+ const shift=bound(Number(offsetCm)||0,0,maxUnits*5)/5;
+ return {layers:layers.map(l=>({...l,depth:l.depth+shift})),maxOffsetCm:maxUnits*5,offsetCm:shift*5};
+}
 BOOK_CONFIG.scenes.forEach((s,index)=>{
  const saved=savedLayouts[index];if(!saved||!Number.isFinite(Number(saved.count))||!Number.isFinite(Number(saved.gap)))return;
- const count=Math.max(1,Math.min(8,Math.round(Number(saved.count)))),gap=Math.max(.75,Math.min(maxGapCm(count),Number(saved.gap)))/5;
- const original=[...s.layers].sort((a,b)=>a.depth-b.depth);
- s.layers=Array.from({length:count},(_,i)=>{
-   const source=original[i]||{name:`LỚP ${i+1} – giữ chỗ`,texture:null,width:1.1,height:1.5,x:((i%3)-1)*1.8,tabHeight:.20,color:THEME.placeholder[i%THEME.placeholder.length],stiffness:115};
-   return {...source,depth:.35+i*gap,delay:i*.045};
- });
+ const count=Math.max(1,Math.min(8,Math.round(Number(saved.count)))),gap=Math.max(.75,Math.min(maxGapCm(count),Number(saved.gap)));
+ s.layers=configuredLayers(index,count,gap);s.forwardOffset=Math.max(0,Number(saved.offset)||0);
 });
 try{const requested=Number(sessionStorage.getItem('popup-book-return-scene'));if(requested>=1&&requested<=BOOK_CONFIG.scenes.length)BOOK_CONFIG.initialPage=requested;sessionStorage.removeItem('popup-book-return-scene');}catch(e){}
 /* Three.js OrbitControls r128, MIT license, embedded for single-file delivery. */
@@ -1164,17 +1179,22 @@ function refreshSettingOutputs(){
  $('layerGap').max=String(maximum);$('layerGap').value=String(Math.min(Number($('layerGap').value),maximum));
  $('countOutput').textContent=String(count);$('gapOutput').textContent=count===1?'—':`${Number($('layerGap').value).toFixed(2)} cm`;
  $('layerGap').disabled=count===1;$('spacingHint').textContent=count===1?'Một lớp không có khoảng cách giữa các lớp.':`Khoảng cách từ lớp này tới lớp kế tiếp, dọc trang. Tối đa ${maximum.toFixed(2)} cm với ${count} lớp để gập vừa trang.`;
+ const sceneIndex=Number($('settingScene').value),preview={layers:configuredLayers(sceneIndex,count,Number($('layerGap').value))};
+ const limit=Math.floor(computeLayerLayout(preview,$('openingMode').value,0).maxOffsetCm*20)/20;
+ $('layerOffset').max=String(limit);$('layerOffset').value=String(Math.min(Number($('layerOffset').value),limit));$('layerOffset').disabled=limit<=0;
+ $('offsetOutput').textContent=Number($('layerOffset').value).toFixed(2)+' cm';
+ $('offsetHint').textContent='Đẩy cả cụm về phía người xem, giữ nguyên khoảng cách. Tối đa '+limit.toFixed(2)+' cm để giấy gập vừa trang.';
 }
 function readSceneSettings(){
  const index=Number($('settingScene').value),layers=BOOK_CONFIG.scenes[index].layers;
  const depths=layers.map(l=>l.depth).sort((a,b)=>a-b),average=depths.length>1?(depths[depths.length-1]-depths[0])/(depths.length-1)*5:2;
- $('layerCount').value=String(layers.length);$('layerGap').max=String(maxGapCm(layers.length));$('layerGap').value=String(savedLayouts[index]?.gap??average);$('settingsStatus').textContent='';refreshSettingOutputs();
+ $('layerCount').value=String(layers.length);$('layerGap').max=String(maxGapCm(layers.length));$('layerGap').value=String(savedLayouts[index]?.gap??average);$('layerOffset').max='30';$('layerOffset').value=String(savedLayouts[index]?.offset||0);$('settingsStatus').textContent='';refreshSettingOutputs();
 }
 $('settingsBtn').onclick=()=>{if(isBusy())return;$('settingScene').value=String(clamp(getCurrent()-1,0,BOOK_CONFIG.scenes.length-1));$('openingMode').value=BOOK_MODE;readSceneSettings();refreshMechanismHint();$('layerSettings').showModal();};
 $('closeSettings').onclick=()=>$('layerSettings').close();$('settingScene').onchange=readSceneSettings;
-$('layerCount').oninput=refreshSettingOutputs;$('layerGap').oninput=refreshSettingOutputs;
+$('layerCount').oninput=refreshSettingOutputs;$('layerGap').oninput=refreshSettingOutputs;$('layerOffset').oninput=refreshSettingOutputs;
 function saveLayout(reset=false){
- const index=Number($('settingScene').value);if(reset)delete savedLayouts[index];else savedLayouts[index]={count:Number($('layerCount').value),gap:Number($('layerGap').value)};
+ const index=Number($('settingScene').value);if(reset)delete savedLayouts[index];else savedLayouts[index]={count:Number($('layerCount').value),gap:Number($('layerGap').value),offset:Number($('layerOffset').value)};
  try{localStorage.setItem(MODE_KEY,$('openingMode').value);localStorage.setItem(SETTINGS_KEY,JSON.stringify(savedLayouts));sessionStorage.setItem('popup-book-return-scene',String(index+1));location.reload();}
  catch(e){$('settingsStatus').textContent='Không thể lưu cài đặt. Hãy cho phép trình duyệt lưu dữ liệu của trang này.';}
 }
@@ -1204,9 +1224,10 @@ const spreads=pages.map((s,index)=>{
  if(s.kind!=='scene')bg.flipY=false;
  const pageTex=texture(null,(ctx,w,h)=>{ctx.fillStyle=THEME.paper;ctx.fillRect(0,0,w,h);ctx.strokeStyle='#b6c1b8';ctx.beginPath();ctx.moveTo(80,h*.65);ctx.lineTo(w-80,h*.65);ctx.stroke();ctx.fillStyle=THEME.ink;ctx.font=`bold 22px ${THEME.font}`;ctx.fillText(s.title.toUpperCase(),80,h*.70);textBlock(ctx,s.kind==='scene'?s.text:'',80,h*.75,w-160,h*.19,23);ctx.font=`18px ${THEME.font}`;ctx.textAlign='right';ctx.fillText(String(index+1).padStart(2,'0'),w-45,h-27);});
  pageTex.flipY=false;
- const sorted=[...(s.layers||[])].sort((a,b)=>a.depth-b.depth);
- const layers=sorted.map((l,i)=>{
-   const width=clamp(l.width||1,.3,W-.4),depth=clamp(l.depth||.5,.3,3.0),height=clamp(l.height||1,.3,D-depth-.25),x=clamp(l.x||0,-W/2+width/2+.12,W/2-width/2-.12),y=.055+(sorted.length-i)*.037;
+ const sorted=computeLayerLayout(s,'90').layers;
+ const layers=sorted.map((entry,i)=>{
+   const l=entry.config;
+   const {width,depth,height,x}=entry,y=.055+(sorted.length-i)*.037;
    const hinge=new T.Group();hinge.position.set(x,y,depth);group.add(hinge);
    const tx=texture(l.texture,(ctx,w,h)=>{ctx.fillStyle=l.color||THEME.placeholder[i%THEME.placeholder.length];ctx.fillRect(0,0,w,h);ctx.strokeStyle='#ffffff80';ctx.lineWidth=3;ctx.strokeRect(30,30,w-60,h-60);ctx.fillStyle=THEME.ink;textBlock(ctx,l.name||`LỚP ${i+1}`,60,h*.30,w-120,h*.5,110,true);});
    const face=material('#ffffff',tx,!!l.translucent),panel=sheet(width,height,face);panel.renderOrder=l.translucent?10+i:0;
@@ -1452,13 +1473,9 @@ function runFlatBook(){
  const rigs=entries.map((s,number)=>{
   const group=new T.Group();book.add(group);group.visible=false;
   const coverTexture=texture(s.texture,(ctx,w,h)=>{ctx.fillStyle=THEME.cover;ctx.fillRect(0,0,w,h);ctx.fillStyle=THEME.ink;textBlock(ctx,s.title,70,h*.32,w-140,h*.23,64,true);textBlock(ctx,s.text||'',70,h*.58,w-140,h*.2,28,true)});coverTexture.flipY=false;
-  const sortedFlat=[...(s.layers||[])].sort((a,b)=>a.depth-b.depth);
-  const baseDepth=Math.max(.60,...sortedFlat.map(cfg=>{const bias=clamp((cfg.x||0)/W,-.30,.30),w=Math.min(clamp((cfg.width||1)*1.65,.6,W*.78),(PW-.35)/(.5+Math.abs(bias)));return w*(.5+Math.abs(bias))/S*C+.08;}));
-  const firstDepth=sortedFlat[0]?.depth||0,span=sortedFlat.length>1?sortedFlat[sortedFlat.length-1].depth-firstDepth:0,depthScale=span>0?Math.min(1,(3.25-baseDepth)/span):1;
-  const layers=sortedFlat.map((cfg,i,all)=>{
-   const bias=clamp((cfg.x||0)/W,-.30,.30),width=Math.min(clamp((cfg.width||1)*1.65,.6,W*.78),(PW-.35)/(.5+Math.abs(bias)));
-   const lengths=[width*(.5-bias)/S,width*(.5+bias)/S];
-   const depth=baseDepth+((cfg.depth||.5)-firstDepth)*depthScale,height=clamp(cfg.height||1,.3,Math.min(D-depth-.18,(PW-.12-Math.max(...lengths)*S)/C));
+  const flatLayout=computeLayerLayout(s,'180');
+  const layers=flatLayout.layers.map((entry,i,all)=>{
+   const {config:cfg,width,bias,lengths,depth,height}=entry;
    const tx=texture(cfg.texture,(ctx,w,h)=>{ctx.fillStyle=cfg.color||THEME.placeholder[i%THEME.placeholder.length];ctx.fillRect(0,0,w,h);ctx.strokeStyle='#ffffff88';ctx.lineWidth=3;ctx.strokeRect(25,25,w-50,h-50);ctx.fillStyle=THEME.ink;textBlock(ctx,cfg.name||`LỚP ${i+1}`,60,h*.30,w-120,h*.45,90,true)});
    const mat=material('#ffffff',tx,!!cfg.translucent),split=.5-bias;
    const wings=lengths.map((length,side)=>{
