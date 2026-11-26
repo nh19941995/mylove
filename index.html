@@ -10,6 +10,13 @@
 .settings-dialog{border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--ink);width:min(440px,calc(100vw - 28px));padding:24px;box-shadow:0 20px 100px #0003}.settings-dialog::backdrop{background:#17252366;backdrop-filter:blur(4px)}.settings-dialog h2{font-size:21px;margin:0 0 20px}.settings-dialog label{display:block;font-size:14px;font-weight:600;margin-top:20px}.settings-dialog select{display:block;width:100%;padding:12px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--ui);color:var(--ink)}.settings-dialog input[type=range]{width:100%;accent-color:var(--accent);min-height:38px;margin:5px 0}.settings-dialog p{font-size:13px;line-height:1.6;color:var(--muted)}.settings-dialog output{float:right;color:var(--accent)}.settings-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;flex-wrap:wrap}.settings-actions .primary{background:var(--accent);color:white}.settings-close{float:right;padding:2px 10px;min-height:32px}.settings-dialog #settingsStatus{color:var(--ink)}@media(max-width:600px){#settingsBtn{font-size:12px;padding:8px}.tools{gap:5px}#mode{font-size:11px;padding:7px}#helpBtn{display:none}}
 #timelineBar{display:flex;gap:12px;align-items:center;font-size:12px;color:var(--muted);padding:0 5px}#bookTimeline{flex:1;min-width:0;accent-color:var(--accent);height:24px;cursor:ew-resize}#timelineLabel{width:38px;text-align:right}#rotatePrompt{position:fixed;inset:0;z-index:100;background:var(--ui);color:var(--ink);display:grid;place-items:center;text-align:center;padding:30px}#rotatePrompt[hidden]{display:none}#rotatePrompt strong{font-size:24px}#rotatePrompt p{line-height:1.6}.settings-dialog{max-height:calc(100svh - 32px);overflow-y:auto}.settings-section{border-top:1px solid var(--line);margin-top:22px;padding-top:16px;font-size:16px}@media(max-height:500px){#app{min-height:0;padding:6px 12px;gap:3px}header h1{font-size:17px}.eyebrow{display:none}header button,footer>button{min-height:32px;padding:5px 10px}#gesture{bottom:4px;padding:5px 10px}#caption{top:8px;left:12px}.tag{display:none}#sceneName{margin:0;font-size:13px}#timelineBar{height:24px}#pages{margin-bottom:3px}} #app{position:fixed;inset:0;display:block;height:100svh;min-height:0;padding:0;gap:0}#stage{position:absolute;inset:0;border:0;border-radius:0;min-height:0}header.minimal-header{position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));left:auto;padding:0;z-index:10}.minimal-header #settingsBtn{width:42px;height:42px;min-height:42px;padding:0;border:0;border-radius:50%;background:var(--panel);font-size:27px;line-height:1;box-shadow:0 2px 14px #0000000a}#caption{display:none}footer{position:static;display:block}footer>.pager{display:none}#prev,#next{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:48px;height:64px;padding:0;min-height:48px;border:0;background:transparent;color:var(--ink);font-size:48px;line-height:1;box-shadow:none}#prev{left:max(4px,env(safe-area-inset-left))}#next{right:max(4px,env(safe-area-inset-right))}#prev:disabled,#next:disabled{opacity:.12}#timelineBar{position:absolute;z-index:5;bottom:max(10px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(560px,80vw);height:28px;padding:0;gap:10px}#timelineBar>span{display:none}#bookTimeline{height:24px;margin:0}#gesture{bottom:max(48px,calc(env(safe-area-inset-bottom) + 38px));font-size:12px;background:transparent;border:0;padding:2px 8px;color:var(--muted)}#corner{width:36px;height:36px;min-height:36px;border:0;box-shadow:none;background:transparent;color:var(--accent);font-size:23px;opacity:.7}#corner:after{display:none}.settings-tools{display:flex;gap:8px}.settings-tools #reset,.settings-tools #mode{display:block;font-size:13px;padding:7px 10px;min-height:36px}.settings-dialog h2{font-size:20px}.settings-dialog label{margin-top:16px}.settings-dialog input[type=range]{min-height:30px}.settings-dialog p{margin:7px 0}#helpBtn[hidden]{display:none}@media(max-height:500px){#gesture{display:none}#timelineBar{bottom:4px}header.minimal-header{top:8px;right:8px}#prev,#next{font-size:40px}}
 
+
+#app{inset:auto;width:var(--book-width,100vw);height:var(--book-height,100dvh);transform-origin:0 0}
+html[data-book-rotated=true] #app{transform:rotate(90deg)}
+#stage canvas{width:100%!important;height:100%!important}
+#timelineBar{width:min(560px,80%)}
+html[data-book-rotated=true] .settings-dialog{position:fixed;inset:auto;left:50%;top:50%;margin:0;transform:translate(-50%,-50%) rotate(90deg);width:min(540px,calc(var(--book-width) - 24px));max-width:none;max-height:calc(var(--book-height) - 24px)}
+html[data-book-rotated=true] #gesture{display:none}
 </style>
 </head>
 <body>
@@ -20,7 +27,7 @@
  <div id="status" role="status" aria-live="polite"></div>
 </div>
 <dialog id="layerSettings" class="settings-dialog" aria-labelledby="settingsTitle"><button id="closeSettings" class="settings-close" aria-label="Đóng cài đặt">×</button><h2 id="settingsTitle">Cài đặt sách</h2><div class="settings-tools"><button id="reset" aria-label="Đặt lại góc nhìn">Góc nhìn gốc</button><button id="mode" aria-label="Đổi giao diện sáng tối">Sáng / tối</button><button id="helpBtn" hidden aria-label="Hướng dẫn thao tác" aria-expanded="false">?</button></div><label for="openingMode">Kiểu mở sách</label><select id="openingMode"><option value="90">90° — trang sau dựng đứng</option><option value="180">180° — hai trang mở phẳng</option></select><p id="mechanismHint"></p><label for="foldAngle">Góc chữ V của layer (180°) <output id="foldAngleOutput"></output></label><input id="foldAngle" type="range" min="100" max="170" step="5" value="140"><label for="settingScene">Cảnh áp dụng</label><select id="settingScene"></select><label for="layerCount">Số lớp <output id="countOutput" for="layerCount"></output></label><input id="layerCount" type="range" min="1" max="8" step="1"><label for="layerGap">Khoảng cách giữa các lớp <output id="gapOutput" for="layerGap"></output></label><input id="layerGap" type="range" min="0.75" max="5" step="0.05"><label for="layerOffset">Dịch lớp về lề dưới <output id="offsetOutput" for="layerOffset"></output></label><input id="layerOffset" type="range" min="0" max="10" step="0.05" value="0"><p id="offsetHint"></p><p id="spacingHint">Khoảng cách được đo dọc trang, từ gáy về phía trước.</p><p>Cài đặt được lưu riêng cho từng cảnh trên trình duyệt này. Các lớp thêm mới dùng hình giữ chỗ.</p><h3 class="settings-section">Góc nhìn khi mở sách</h3><label for="viewZoom">Độ gần màn hình <output id="viewZoomOutput"></output></label><input id="viewZoom" type="range" min="70" max="140" step="5"><label for="viewAzimuth">Góc xoay ngang <output id="viewAzimuthOutput"></output></label><input id="viewAzimuth" type="range" min="-60" max="60" step="5"><label for="viewElevation">Góc nhìn cao / thấp <output id="viewElevationOutput"></output></label><input id="viewElevation" type="range" min="20" max="60" step="5"><p id="settingsStatus" role="status" aria-live="polite"></p><div class="settings-actions"><button id="resetLayers">Mặc định</button><button id="applyLayers" class="primary">Áp dụng</button></div></dialog>
-<div id="rotatePrompt" hidden><div><strong>Xoay điện thoại để xem sách</strong><p id="rotateMessage">Sách được thiết kế để xem theo chiều ngang.</p><button id="landscapeButton">Mở ngang toàn màn hình</button></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ================================================================
    NỘI DUNG: chỉ sửa BOOK_CONFIG và THEME. Đơn vị hình học: 1 = 5 cm.
@@ -96,6 +103,13 @@ BOOK_CONFIG.scenes.forEach((s,index)=>{
  s.layers=configuredLayers(index,count,gap);s.forwardOffset=Math.max(0,Number(saved.offset)||0);s.foldAngle=Math.max(100,Math.min(170,Number(saved.foldAngle)||140));
 });
 try{const requested=Number(sessionStorage.getItem('popup-book-return-scene'));if(requested>=1&&requested<=BOOK_CONFIG.scenes.length)BOOK_CONFIG.initialPage=requested;sessionStorage.removeItem('popup-book-return-scene');}catch(e){}
+// Convert screen coordinates into the book's logical landscape viewport.
+function bookPointer(event){
+ const app=document.getElementById('app'),r=app.getBoundingClientRect();
+ return document.documentElement.dataset.bookRotated==='true'
+  ?{x:event.clientY-r.top,y:r.right-event.clientX}
+  :{x:event.clientX-r.left,y:event.clientY-r.top};
+}
 /* Three.js OrbitControls r128, MIT license, embedded for single-file delivery. */
 if (window.THREE) {
 ( function () {
@@ -547,25 +561,25 @@ if (window.THREE) {
 
 			function handleMouseDownRotate( event ) {
 
-				rotateStart.set( event.clientX, event.clientY );
+				rotateStart.set( bookPointer(event).x, bookPointer(event).y );
 
 			}
 
 			function handleMouseDownDolly( event ) {
 
-				dollyStart.set( event.clientX, event.clientY );
+				dollyStart.set( bookPointer(event).x, bookPointer(event).y );
 
 			}
 
 			function handleMouseDownPan( event ) {
 
-				panStart.set( event.clientX, event.clientY );
+				panStart.set( bookPointer(event).x, bookPointer(event).y );
 
 			}
 
 			function handleMouseMoveRotate( event ) {
 
-				rotateEnd.set( event.clientX, event.clientY );
+				rotateEnd.set( bookPointer(event).x, bookPointer(event).y );
 				rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( scope.rotateSpeed );
 				const element = scope.domElement;
 				rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
@@ -578,7 +592,7 @@ if (window.THREE) {
 
 			function handleMouseMoveDolly( event ) {
 
-				dollyEnd.set( event.clientX, event.clientY );
+				dollyEnd.set( bookPointer(event).x, bookPointer(event).y );
 				dollyDelta.subVectors( dollyEnd, dollyStart );
 
 				if ( dollyDelta.y > 0 ) {
@@ -598,7 +612,7 @@ if (window.THREE) {
 
 			function handleMouseMovePan( event ) {
 
-				panEnd.set( event.clientX, event.clientY );
+				panEnd.set( bookPointer(event).x, bookPointer(event).y );
 				panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
 				pan( panDelta.x, panDelta.y );
 				panStart.copy( panEnd );
@@ -667,12 +681,12 @@ if (window.THREE) {
 
 				if ( event.touches.length == 1 ) {
 
-					rotateStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+					rotateStart.set( bookPointer(event.touches[ 0 ]).x, bookPointer(event.touches[ 0 ]).y );
 
 				} else {
 
-					const x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
-					const y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+					const x = 0.5 * ( bookPointer(event.touches[ 0 ]).x + bookPointer(event.touches[ 1 ]).x );
+					const y = 0.5 * ( bookPointer(event.touches[ 0 ]).y + bookPointer(event.touches[ 1 ]).y );
 					rotateStart.set( x, y );
 
 				}
@@ -683,12 +697,12 @@ if (window.THREE) {
 
 				if ( event.touches.length == 1 ) {
 
-					panStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+					panStart.set( bookPointer(event.touches[ 0 ]).x, bookPointer(event.touches[ 0 ]).y );
 
 				} else {
 
-					const x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
-					const y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+					const x = 0.5 * ( bookPointer(event.touches[ 0 ]).x + bookPointer(event.touches[ 1 ]).x );
+					const y = 0.5 * ( bookPointer(event.touches[ 0 ]).y + bookPointer(event.touches[ 1 ]).y );
 					panStart.set( x, y );
 
 				}
@@ -697,8 +711,8 @@ if (window.THREE) {
 
 			function handleTouchStartDolly( event ) {
 
-				const dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
-				const dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+				const dx = bookPointer(event.touches[ 0 ]).x - bookPointer(event.touches[ 1 ]).x;
+				const dy = bookPointer(event.touches[ 0 ]).y - bookPointer(event.touches[ 1 ]).y;
 				const distance = Math.sqrt( dx * dx + dy * dy );
 				dollyStart.set( 0, distance );
 
@@ -722,12 +736,12 @@ if (window.THREE) {
 
 				if ( event.touches.length == 1 ) {
 
-					rotateEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+					rotateEnd.set( bookPointer(event.touches[ 0 ]).x, bookPointer(event.touches[ 0 ]).y );
 
 				} else {
 
-					const x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
-					const y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+					const x = 0.5 * ( bookPointer(event.touches[ 0 ]).x + bookPointer(event.touches[ 1 ]).x );
+					const y = 0.5 * ( bookPointer(event.touches[ 0 ]).y + bookPointer(event.touches[ 1 ]).y );
 					rotateEnd.set( x, y );
 
 				}
@@ -745,12 +759,12 @@ if (window.THREE) {
 
 				if ( event.touches.length == 1 ) {
 
-					panEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+					panEnd.set( bookPointer(event.touches[ 0 ]).x, bookPointer(event.touches[ 0 ]).y );
 
 				} else {
 
-					const x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
-					const y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+					const x = 0.5 * ( bookPointer(event.touches[ 0 ]).x + bookPointer(event.touches[ 1 ]).x );
+					const y = 0.5 * ( bookPointer(event.touches[ 0 ]).y + bookPointer(event.touches[ 1 ]).y );
 					panEnd.set( x, y );
 
 				}
@@ -763,8 +777,8 @@ if (window.THREE) {
 
 			function handleTouchMoveDolly( event ) {
 
-				const dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
-				const dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+				const dx = bookPointer(event.touches[ 0 ]).x - bookPointer(event.touches[ 1 ]).x;
+				const dy = bookPointer(event.touches[ 0 ]).y - bookPointer(event.touches[ 1 ]).y;
 				const distance = Math.sqrt( dx * dx + dy * dy );
 				dollyEnd.set( 0, distance );
 				dollyDelta.set( 0, Math.pow( dollyEnd.y / dollyStart.y, scope.zoomSpeed ) );
@@ -1178,6 +1192,7 @@ function sheet(w,h,mat,th=THICK){const mesh=new T.Mesh(paperGeometry(w,h,th),[ma
 const table=new T.Mesh(new T.PlaneGeometry(200,200),material(THEME.table));table.rotation.x=-PI/2;table.receiveShadow=true;scene.add(table);
 // Fade only construction meshes. Each rig owns its cloned materials; page,
 // cover and neighbouring scene materials must never inherit this opacity.
+renderer.localClippingEnabled=true;
 function oldLayerOpacity(progress){const t=Math.max(0,Math.min(1,progress/.70));return 1-t*t*(3-2*t);}
 function fadeConstruction(group,opacity){
  let state=group.userData.layerFade;
@@ -1201,6 +1216,16 @@ function fadeConstruction(group,opacity){
  if(opacity<=0)group.visible=false;
 }
 
+function containConstruction(group,angle,lower,upper){
+ if(angle<.012){group.visible=false;return;}
+ group.updateWorldMatrix(true,false);
+ const planes=group.userData.pageClip||(group.userData.pageClip=[new T.Plane(),new T.Plane()]);
+ planes[0].copy(lower).applyMatrix4(group.matrixWorld);planes[1].copy(upper).applyMatrix4(group.matrixWorld);
+ if(!group.userData.clipBound){group.traverse(o=>{
+  for(const m of (Array.isArray(o.material)?o.material:[o.material,o.customDepthMaterial]))if(m){m.clippingPlanes=planes;m.clipShadows=true;m.needsUpdate=true;}
+  if(o.customDepthMaterial){o.customDepthMaterial.clippingPlanes=planes;o.customDepthMaterial.clipShadows=true;o.customDepthMaterial.needsUpdate=true;}
+ });group.userData.clipBound=true;}
+}
 function createBookCamera(flat){
  return {pose(progress){
   const t=Math.max(0,Math.min(1,progress)),aspect=stage.clientWidth/stage.clientHeight;
@@ -1217,7 +1242,7 @@ function bindBookClick(isClosed,open,meshes){
  renderer.domElement.addEventListener('pointerdown',e=>{downPoint={x:e.clientX,y:e.clientY};});
  renderer.domElement.addEventListener('click',e=>{
   if(!isClosed()||!downPoint||Math.hypot(e.clientX-downPoint.x,e.clientY-downPoint.y)>7)return;
-  const rect=renderer.domElement.getBoundingClientRect();point.set((e.clientX-rect.left)/rect.width*2-1,1-(e.clientY-rect.top)/rect.height*2);ray.setFromCamera(point,camera);
+  const local=bookPointer(e);point.set(local.x/stage.clientWidth*2-1,1-local.y/stage.clientHeight*2);ray.setFromCamera(point,camera);
   if(ray.intersectObjects(meshes,true).length)open();
  });
 }
@@ -1230,17 +1255,23 @@ function setupTimeline(total,getPosition,seek,release){
  return ()=>{const p=clamp(getPosition(),0,total-1),percent=p/(total-1)*100;if(!dragging)input.value=String(percent);output.textContent=`${Math.round(percent)}%`;input.setAttribute('aria-valuetext',`${Math.round(percent)} phần trăm cuốn sách`);};
 }
 function setupPhoneLandscape(){
- const prompt=$('rotatePrompt'),message=$('rotateMessage');
- const update=()=>{prompt.hidden=!(matchMedia('(pointer:coarse)').matches&&innerWidth<innerHeight);};
- $('landscapeButton').onclick=async()=>{
-  try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();if(screen.orientation?.lock)await screen.orientation.lock('landscape');else throw new Error('manual');}
-  catch(e){message.textContent='Trình duyệt này cần bạn xoay điện thoại sang ngang. Nếu chưa xoay được, hãy tắt khóa xoay của điện thoại.';}
-  update();
- };
- addEventListener('resize',update);addEventListener('orientationchange',update);update();
+ const root=document.documentElement,app=$('app');
+ function layout(){
+  const vv=window.visualViewport,w=Math.round(vv?.width||innerWidth),h=Math.round(vv?.height||innerHeight);
+  const rotated=matchMedia('(pointer:coarse)').matches&&w<h;
+  root.dataset.bookRotated=String(rotated);
+  root.style.setProperty('--book-width',(rotated?h:w)+'px');
+  root.style.setProperty('--book-height',(rotated?w:h)+'px');
+  app.style.left=(vv?.offsetLeft||0)+(rotated?w:0)+'px';app.style.top=(vv?.offsetTop||0)+'px';
+ }
+ addEventListener('resize',layout);addEventListener('orientationchange',()=>{layout();requestAnimationFrame(layout);});
+ window.visualViewport?.addEventListener('resize',layout);window.visualViewport?.addEventListener('scroll',layout);layout();
 }
-
 setupPhoneLandscape();
+function observeBookSize(resize){
+ const observer=new ResizeObserver(()=>resize());observer.observe(stage);
+ resize();
+}
 function installSettings(getCurrent,isBusy){
 BOOK_CONFIG.scenes.forEach((s,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=s.title;$('settingScene').append(option);});
 function refreshSettingOutputs(){
@@ -1385,7 +1416,7 @@ function updateTransition(dt){
    spreads.forEach(s=>s.group.visible=s===chosen);chosen.group.rotation.x=0;chosen.group.position.y=0;
    backdrop.material=[chosen.bgMat,edgeMat];base.material=[chosen.baseMat,edgeMat];
    backCover.material=[(next.kind==='scene'?old:next.kind==='end'?spreads[0]:next).bgMat,edgeMat];
-   liveSpreads=[{spread:chosen,angle:bookAngle,height:.40,z:0}];turnLeaf.visible=false;
+   liveSpreads=[{spread:chosen,angle:bookAngle,height:.03+.37*smooth(bookAngle/(OPEN*.18)),z:0}];turnLeaf.visible=false;
  }else{
    bookAngle=OPEN;phi=OPEN; // Invariant: turning a spread NEVER closes the book.
    turnAngle=OPEN*(tr.direction>0?p:1-p);
@@ -1488,31 +1519,31 @@ function renderLayers(){
 
 function projectCorner(){const v=transition&&!transition.cover?turnTip.clone():new T.Vector3(W/2-.16,.15,D-.12);book.localToWorld(v);v.project(camera);const w=stage.clientWidth,h=stage.clientHeight;$('corner').style.transform=`translate(${clamp((v.x*.5+.5)*w-22,4,w-48)}px,${clamp((-v.y*.5+.5)*h-22,4,h-48)}px)`;$('corner').style.visibility=transition&&!drag?'hidden':'visible';}
 function resetCamera(){backPivot.position.y=.03+.37*smooth(bookAngle/(OPEN*.18));bookCamera.pose(bookAngle/OPEN);wake();}
-function resize(){camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();renderer.setSize(stage.clientWidth,stage.clientHeight);resetCamera();}
+function resize(){camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();renderer.setSize(stage.clientWidth,stage.clientHeight,false);if(!resize.ready){resetCamera();resize.ready=true;}wake();}
 let themeDark=matchMedia('(prefers-color-scheme: dark)').matches;
 function theme(){document.body.dataset.mode=themeDark?'dark':'light';for(const [k,v]of Object.entries(THEME[themeDark?'dark':'light']))document.documentElement.style.setProperty('--'+k,v);document.body.style.fontFamily=THEME.font;}
 $('mode').onclick=()=>{themeDark=!themeDark;theme()};$('helpBtn').onclick=()=>{$('help').hidden=!$('help').hidden;$('helpBtn').setAttribute('aria-expanded',String(!$('help').hidden))};$('reset').onclick=resetCamera;
 installSettings(()=>current,()=>!!transition);
 $('prev').onclick=()=>goTo(current-1);$('next').onclick=()=>goTo(current+1);
 document.addEventListener('keydown',e=>{if($('layerSettings').open||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();goTo(current+(e.key==='ArrowRight'?1:-1));}if(e.key==='Escape')$('help').hidden=true;});
-function dragStart(e){if(e.button!==undefined&&e.button!==0)return;const to=current===pages.length-1?current-1:current+1;if(!start(to,true))return;e.preventDefault();e.stopPropagation();controls.enabled=false;drag={id:e.pointerId,x:e.clientX,y:e.clientY,lastP:0,lastT:performance.now(),moved:false,source:e.currentTarget};e.currentTarget.setPointerCapture(e.pointerId);}
-function dragMove(e){if(!drag||drag.id!==e.pointerId||!transition)return;e.preventDefault();const distance=Math.max(stage.clientHeight*.46,150);const delta=(drag.y-e.clientY)+.55*(drag.x-e.clientX);const p=clamp(delta/distance,0,1);const now=performance.now(),dt=Math.max(.01,(now-drag.lastT)/1000);transition.v=clamp((p-drag.lastP)/dt,-1.5,1.5);transition.input=p;drag.moved ||= Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7;drag.lastP=p;drag.lastT=now;wake();}
+function dragStart(e){if(e.button!==undefined&&e.button!==0)return;const to=current===pages.length-1?current-1:current+1;if(!start(to,true))return;e.preventDefault();e.stopPropagation();controls.enabled=false;drag={id:e.pointerId,x:bookPointer(e).x,y:bookPointer(e).y,lastP:0,lastT:performance.now(),moved:false,source:e.currentTarget};e.currentTarget.setPointerCapture(e.pointerId);}
+function dragMove(e){if(!drag||drag.id!==e.pointerId||!transition)return;e.preventDefault();const distance=Math.max(stage.clientHeight*.46,150);const delta=(drag.y-bookPointer(e).y)+.55*(drag.x-bookPointer(e).x);const p=clamp(delta/distance,0,1);const now=performance.now(),dt=Math.max(.01,(now-drag.lastT)/1000);transition.v=clamp((p-drag.lastP)/dt,-1.5,1.5);transition.input=p;drag.moved ||= Math.hypot(bookPointer(e).x-drag.x,bookPointer(e).y-drag.y)>7;drag.lastP=p;drag.lastT=now;wake();}
 function dragEnd(e,cancel=false){if(!drag||drag.id!==e.pointerId)return;e.preventDefault();if(transition){const target=cancel?0:(!drag.moved||transition.input>=.40?1:0);settleTurn(target,performance.now()-drag.lastT>100?0:transition.v);}if(drag.source.hasPointerCapture(e.pointerId))drag.source.releasePointerCapture(e.pointerId);drag=null;controls.enabled=true;wake();}
 $('corner').addEventListener('pointerdown',dragStart);$('corner').addEventListener('pointermove',dragMove);$('corner').addEventListener('pointerup',e=>dragEnd(e));$('corner').addEventListener('pointercancel',e=>dragEnd(e,true));$('corner').addEventListener('click',e=>{if(e.detail===0)goTo(current===pages.length-1?current-1:current+1)});
 // The visible paper corner is also draggable, not just its HTML affordance.
-renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-r.left-22,e.clientY-r.top-22)<55)dragStart(e)},true);
+renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))<55)dragStart(e)},true);
 renderer.domElement.addEventListener('pointermove',dragMove);renderer.domElement.addEventListener('pointerup',e=>dragEnd(e));renderer.domElement.addEventListener('pointercancel',e=>dragEnd(e,true));
 function wake(){settledFrames=0;if(!document.hidden&&!raf){lastTime=performance.now();raf=requestAnimationFrame(tick)}}
-function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}if(pendingGeometry&&turnLeaf.visible)deformPage();renderLayers();backPivot.position.y=.03+.37*smooth(bookAngle/(OPEN*.18));if(cameraAuto){controls.enableDamping=false;bookCamera.pose(bookAngle/OPEN);if(!transition){cameraAuto=false;controls.enableDamping=!reduced;}}syncTimeline();for(const s of spreads)fadeConstruction(s.group,transition&&s===spreads[transition.from]?oldLayerOpacity(transition.p):1);controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';stage.dataset.bookAngle=bookAngle.toFixed(6);stage.dataset.turnAngle=turnAngle.toFixed(6);stage.dataset.engine='single-leaf-v2';
+function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}if(pendingGeometry&&turnLeaf.visible)deformPage();renderLayers();backPivot.position.y=.03+.37*smooth(bookAngle/(OPEN*.18));if(cameraAuto){controls.enableDamping=false;bookCamera.pose(bookAngle/OPEN);if(!transition){cameraAuto=false;controls.enableDamping=!reduced;}}syncTimeline();for(const s of spreads)fadeConstruction(s.group,transition&&s===spreads[transition.from]?oldLayerOpacity(transition.p):1);for(const c of liveSpreads){const a=c.angle;containConstruction(c.spread.group,a,new T.Plane(new T.Vector3(0,1,0),-.016),new T.Plane(new T.Vector3(0,-Math.cos(a),Math.sin(a)),c.height*Math.cos(a)-c.z*Math.sin(a)-.016));}controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';stage.dataset.bookAngle=bookAngle.toFixed(6);stage.dataset.turnAngle=turnAngle.toFixed(6);stage.dataset.engine='single-leaf-v2';
  // Adaptive resolution keeps the 2048 shadow map and reduces fill cost first.
- if(frameCount>120&&frameTime/frameCount>1/43&&renderer.getPixelRatio()>1){renderer.setPixelRatio(Math.max(1,renderer.getPixelRatio()-.25));renderer.setSize(stage.clientWidth,stage.clientHeight);frameCount=0;frameTime=0;}
+ if(frameCount>120&&frameTime/frameCount>1/43&&renderer.getPixelRatio()>1){renderer.setPixelRatio(Math.max(1,renderer.getPixelRatio()-.25));renderer.setSize(stage.clientWidth,stage.clientHeight,false);frameCount=0;frameTime=0;}
  const moving=transition||drag||liveSpreads.some(c=>c.spread.layers.some(l=>Math.abs(l.velocity)>.002||Math.abs(l.angle-l.target)>.002));
  settledFrames=moving?0:settledFrames+1;inFrame=false;if(!document.hidden&&(moving||settledFrames<80))raf=requestAnimationFrame(tick);
 }
 controls.addEventListener('change',()=>{settledFrames=0;if(!inFrame)wake()});controls.addEventListener('start',wake);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;if(drag)dragEnd({pointerId:drag.id,preventDefault(){}},true);}else wake();});
 renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);raf=0;fail('Kết nối đồ họa bị gián đoạn. Hãy tải lại trang để tiếp tục.');});
-bindBookClick(()=>current===0&&!transition,()=>goTo(1),[baseCover,backCover]);renderRequest=wake;window.addEventListener('resize',resize);theme();applyPage(current);active.layers.forEach(l=>l.angle=0);backPivot.rotation.x=PI/2-bookAngle;setUI();resize();wake();
+bindBookClick(()=>current===0&&!transition,()=>goTo(1),[baseCover,backCover]);renderRequest=wake;observeBookSize(resize);theme();applyPage(current);active.layers.forEach(l=>l.angle=0);backPivot.rotation.x=PI/2-bookAngle;setUI();resize();wake();
 // Read-only diagnostics for validation; no scene state mutation is exposed.
 window.POPUP_DIAGNOSTICS=()=>({page:current,pages:pages.length,transition:transition?{progress:transition.p,target:transition.target}:null,bookAngle:phi,layerAngles:active.layers.map(l=>l.angle),linkErrors:active.layers.map(l=>Math.max(0,endpointDistance(l,l.angle)-l.linkLength)),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,pixelRatio:renderer.getPixelRatio(),reducedMotion:reduced,threeRevision:T.REVISION});
 /* 180-degree V-fold: two rigid wings, two page hinge axes, one centre crease.
@@ -1645,18 +1676,18 @@ function runFlatBook(){
   if(!m.manual&&m.time>=m.duration){index=m.target===1?m.to:m.from;if(entries[index].kind==='end')index=0;motion=null;openAngle=rigs[index].kind==='scene'?PI:0;leftStack.rotation.z=openAngle;leftStack.position.y=openAngle===0?.048:0;movingPage.visible=false;show(index);ui();$('status').textContent=entries[index].title;}
  }
  function resetView(){camFlat.pose(openAngle/PI);wakeFlat();}
- function resizeFlat(){camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();renderer.setSize(stage.clientWidth,stage.clientHeight);resetView();}
+ function resizeFlat(){camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();renderer.setSize(stage.clientWidth,stage.clientHeight,false);if(!resizeFlat.ready){resetView();resizeFlat.ready=true;}wakeFlat();}
  function setTheme(){document.body.dataset.mode=dark?'dark':'light';for(const [k,v]of Object.entries(THEME[dark?'dark':'light']))document.documentElement.style.setProperty('--'+k,v);document.body.style.fontFamily=THEME.font;}
  $('mode').onclick=()=>{dark=!dark;setTheme()};$('reset').onclick=resetView;$('helpBtn').onclick=()=>{$('help').hidden=!$('help').hidden;$('helpBtn').setAttribute('aria-expanded',String(!$('help').hidden))};
  $('prev').onclick=()=>begin(index-1);$('next').onclick=()=>begin(index+1);installSettings(()=>index,()=>!!motion);
  document.addEventListener('keydown',e=>{if($('layerSettings').open||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();begin(index+(e.key==='ArrowRight'?1:-1));}if(e.key==='Escape')$('help').hidden=true;});
- function down(e){if(e.button!==undefined&&e.button!==0)return;if(!begin(index===entries.length-1?index-1:index+1,true))return;e.preventDefault();e.stopPropagation();controls.enabled=false;held={id:e.pointerId,x:e.clientX,y:e.clientY,p:0,time:performance.now(),velocity:0,moved:false,source:e.currentTarget};e.currentTarget.setPointerCapture(e.pointerId);}
- function move(e){if(!held||held.id!==e.pointerId||!motion)return;e.preventDefault();const p=clamp(((held.x-e.clientX)+(held.y-e.clientY)*.35)/Math.max(160,stage.clientWidth*.5),0,1),now=performance.now();held.velocity=clamp((p-held.p)/Math.max(.01,(now-held.time)/1000),-1.2,1.2);held.moved ||= Math.hypot(e.clientX-held.x,e.clientY-held.y)>7;held.time=now;held.p=p;motion.input=p;wakeFlat();}
+ function down(e){if(e.button!==undefined&&e.button!==0)return;if(!begin(index===entries.length-1?index-1:index+1,true))return;e.preventDefault();e.stopPropagation();controls.enabled=false;held={id:e.pointerId,x:bookPointer(e).x,y:bookPointer(e).y,p:0,time:performance.now(),velocity:0,moved:false,source:e.currentTarget};e.currentTarget.setPointerCapture(e.pointerId);}
+ function move(e){if(!held||held.id!==e.pointerId||!motion)return;e.preventDefault();const p=clamp(((held.x-bookPointer(e).x)+(held.y-bookPointer(e).y)*.35)/Math.max(160,stage.clientWidth*.5),0,1),now=performance.now();held.velocity=clamp((p-held.p)/Math.max(.01,(now-held.time)/1000),-1.2,1.2);held.moved ||= Math.hypot(bookPointer(e).x-held.x,bookPointer(e).y-held.y)>7;held.time=now;held.p=p;motion.input=p;wakeFlat();}
  function up(e,cancel=false){if(!held||held.id!==e.pointerId)return;e.preventDefault();settle(cancel?0:(!held.moved||held.p>=.4?1:0),performance.now()-held.time>100?0:held.velocity);if(held.source.hasPointerCapture(e.pointerId))held.source.releasePointerCapture(e.pointerId);held=null;controls.enabled=true;wakeFlat();}
  $('corner').addEventListener('pointerdown',down);$('corner').addEventListener('pointermove',move);$('corner').addEventListener('pointerup',e=>up(e));$('corner').addEventListener('pointercancel',e=>up(e,true));$('corner').onclick=e=>{if(e.detail===0)begin(index===entries.length-1?index-1:index+1)};
- renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-r.left-22,e.clientY-r.top-22)<52)down(e)},true);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',e=>up(e));renderer.domElement.addEventListener('pointercancel',e=>up(e,true));
+ renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))<52)down(e)},true);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',e=>up(e));renderer.domElement.addEventListener('pointercancel',e=>up(e,true));
  function wakeFlat(){idle=0;if(!document.hidden&&!frame){last=performance.now();frame=requestAnimationFrame(tickFlat)}}
- function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);if(camAuto){controls.enableDamping=false;camFlat.pose(openAngle/PI);if(!motion){camAuto=false;controls.enableDamping=!reduced;}}syncFlatTimeline();for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);for(const r of rigs)fadeConstruction(r.group,motion&&r===rigs[motion.from]?oldLayerOpacity(motion.p):1);controls.update();
+ function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);if(camAuto){controls.enableDamping=false;camFlat.pose(openAngle/PI);if(!motion){camAuto=false;controls.enableDamping=!reduced;}}syncFlatTimeline();for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);for(const r of rigs)fadeConstruction(r.group,motion&&r===rigs[motion.from]?oldLayerOpacity(motion.p):1);for(const c of visibleRigs){const a=c.rotation,b=a+c.beta,n0=new T.Vector3(-Math.sin(a),Math.cos(a),0),n1=new T.Vector3(Math.sin(b),-Math.cos(b),0);containConstruction(c.rig.group,c.beta,new T.Plane(n0,-ROOT*n0.y-.01),new T.Plane(n1,-ROOT*n1.y-.01));}controls.update();
   const point=motion&&!motion.cover?movingTip.clone():new T.Vector3(PW-.1,.1,D-.1);book.localToWorld(point);point.project(camera);
   $('corner').style.transform=`translate(${clamp((point.x*.5+.5)*stage.clientWidth-22,4,stage.clientWidth-48)}px,${clamp((-point.y*.5+.5)*stage.clientHeight-22,4,stage.clientHeight-48)}px)`;$('corner').style.visibility=motion&&!held?'hidden':'visible';
   stage.dataset.engine='vfold-180-v1';stage.dataset.bookAngle=openAngle.toFixed(6);stage.dataset.turnAngle=theta.toFixed(6);stage.dataset.progress=motion?motion.p.toFixed(4):'idle';stage.dataset.layers=String(currentRig.layers.length);
@@ -1665,7 +1696,7 @@ function runFlatBook(){
  bindBookClick(()=>index===0&&!motion,()=>begin(1),[coverL,coverR,leftPage,rightPage]);renderRequest=wakeFlat;controls.addEventListener('change',()=>{idle=0;if(!rendering)wakeFlat()});controls.addEventListener('start',wakeFlat);
  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;if(held)up({pointerId:held.id,preventDefault(){}},true);}else wakeFlat()});
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(frame);frame=0;fail('Kết nối đồ họa bị gián đoạn. Hãy tải lại trang để tiếp tục.');});
- window.addEventListener('resize',resizeFlat);show(index);leftStack.position.y=openAngle===0?.048:0;setTheme();ui();resizeFlat();wakeFlat();
+ observeBookSize(resizeFlat);show(index);leftStack.position.y=openAngle===0?.048:0;setTheme();ui();resizeFlat();wakeFlat();
  // Local preview only: freeze a real transition for geometric and visual QA.
  if(location.hostname==='127.0.0.1'&&new URLSearchParams(location.search).has('flatInspect')){index=1;openAngle=PI;show(index);begin(Math.min(index+1,entries.length-2),true);if(motion)motion.p=motion.input=clamp(Number(new URLSearchParams(location.search).get('flatInspect')),0,1);}
 }
