@@ -26,7 +26,7 @@ html[data-book-rotated=true] #gesture{display:none}
  <footer><button id="prev" aria-label="Lật về trang trước">‹</button><div class="pager"><div id="pages" aria-label="Chọn trang"></div><span id="count"></span></div><button id="next" aria-label="Lật sang trang tiếp theo">›</button></footer><div id="timelineBar"><span>TIẾN ĐỘ</span><input id="bookTimeline" aria-label="Tiến độ mở và lật sách" type="range" min="0" max="100" step="0.1" value="0"><output id="timelineLabel">0%</output></div>
  <div id="status" role="status" aria-live="polite"></div>
 </div>
-<dialog id="layerSettings" class="settings-dialog" aria-labelledby="settingsTitle"><button id="closeSettings" class="settings-close" aria-label="Đóng cài đặt">×</button><h2 id="settingsTitle">Cài đặt sách</h2><div class="settings-tools"><button id="reset" aria-label="Đặt lại góc nhìn">Góc nhìn gốc</button><button id="mode" aria-label="Đổi giao diện sáng tối">Sáng / tối</button><button id="helpBtn" hidden aria-label="Hướng dẫn thao tác" aria-expanded="false">?</button></div><label for="openingMode">Kiểu mở sách</label><select id="openingMode"><option value="90">90° — trang sau dựng đứng</option><option value="180">180° — hai trang mở phẳng</option></select><p id="mechanismHint"></p><label for="foldAngle">Góc chữ V của layer (180°) <output id="foldAngleOutput"></output></label><input id="foldAngle" type="range" min="100" max="170" step="5" value="140"><label for="settingScene">Cảnh áp dụng</label><select id="settingScene"></select><label for="layerCount">Số lớp <output id="countOutput" for="layerCount"></output></label><input id="layerCount" type="range" min="1" max="8" step="1"><label for="layerGap">Khoảng cách giữa các lớp <output id="gapOutput" for="layerGap"></output></label><input id="layerGap" type="range" min="0.75" max="5" step="0.05"><label for="layerOffset">Dịch lớp về lề dưới <output id="offsetOutput" for="layerOffset"></output></label><input id="layerOffset" type="range" min="0" max="10" step="0.05" value="0"><p id="offsetHint"></p><p id="spacingHint">Khoảng cách được đo dọc trang, từ gáy về phía trước.</p><p>Cài đặt được lưu riêng cho từng cảnh trên trình duyệt này. Các lớp thêm mới dùng hình giữ chỗ.</p><h3 class="settings-section">Góc nhìn khi mở sách</h3><label for="viewZoom">Độ gần màn hình <output id="viewZoomOutput"></output></label><input id="viewZoom" type="range" min="70" max="140" step="5"><label for="viewAzimuth">Góc xoay ngang <output id="viewAzimuthOutput"></output></label><input id="viewAzimuth" type="range" min="-60" max="60" step="5"><label for="viewElevation">Góc nhìn cao / thấp <output id="viewElevationOutput"></output></label><input id="viewElevation" type="range" min="20" max="60" step="5"><p id="settingsStatus" role="status" aria-live="polite"></p><div class="settings-actions"><button id="resetLayers">Mặc định</button><button id="applyLayers" class="primary">Áp dụng</button></div></dialog>
+<dialog id="layerSettings" class="settings-dialog" aria-labelledby="settingsTitle"><button id="closeSettings" class="settings-close" aria-label="Đóng cài đặt">×</button><h2 id="settingsTitle">Cài đặt sách</h2><div class="settings-tools"><button id="reset" aria-label="Đặt lại góc nhìn">Góc nhìn gốc</button><button id="mode" aria-label="Đổi giao diện sáng tối">Sáng / tối</button><button id="helpBtn" hidden aria-label="Hướng dẫn thao tác" aria-expanded="false">?</button></div><label for="openingMode">Kiểu mở sách</label><select id="openingMode"><option value="90">90° — trang sau dựng đứng</option><option value="180">180° — hai trang mở phẳng</option></select><p id="mechanismHint"></p><label for="foldAngle">Góc chữ V của layer (180°) <output id="foldAngleOutput"></output></label><input id="foldAngle" type="range" min="100" max="170" step="5" value="140"><label for="settingScene">Cảnh áp dụng</label><select id="settingScene"></select><label for="layerCount">Số lớp <output id="countOutput" for="layerCount"></output></label><input id="layerCount" type="range" min="1" max="8" step="1"><label for="layerGap">Khoảng cách giữa các lớp <output id="gapOutput" for="layerGap"></output></label><input id="layerGap" type="range" min="0.75" max="5" step="0.05"><label for="layerOffset">Dịch lớp về lề dưới <output id="offsetOutput" for="layerOffset"></output></label><input id="layerOffset" type="range" min="0" max="10" step="0.05" value="0"><p id="offsetHint"></p><p id="spacingHint">Khoảng cách được đo dọc trang, từ gáy về phía trước.</p><p>Cài đặt được lưu riêng cho từng cảnh trên trình duyệt này. Các lớp thêm mới dùng hình giữ chỗ.</p><h3 class="settings-section">Góc nhìn khi mở sách</h3><label for="viewZoom">Độ gần màn hình <output id="viewZoomOutput"></output></label><input id="viewZoom" type="range" min="70" max="140" step="5"><label for="viewAzimuth">Góc xoay ngang <output id="viewAzimuthOutput"></output></label><input id="viewAzimuth" type="range" min="-60" max="60" step="5"><label for="viewElevation">Góc nhìn cao / thấp <output id="viewElevationOutput"></output></label><input id="viewElevation" type="range" min="20" max="60" step="5"><p id="settingsStatus" role="status" aria-live="polite"></p><div class="settings-actions"><button id="exportJson">Xuất JSON</button><button id="resetLayers">Mặc định</button><button id="applyLayers" class="primary">Áp dụng</button></div><section id="jsonPanel" hidden><label for="jsonSettings">JSON cài đặt</label><textarea id="jsonSettings" readonly spellcheck="false" style="width:100%;height:190px;font:12px monospace;resize:vertical" aria-label="JSON cài đặt để sao chép"></textarea><div class="settings-actions"><button id="copyJson">Sao chép JSON</button><button id="downloadJson">Tải file JSON</button></div></section></dialog>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ================================================================
@@ -1216,6 +1216,60 @@ function fadeConstruction(group,opacity){
  if(opacity<=0)group.visible=false;
 }
 
+// Radial lookup of the actual deformed leaf, shared by surface and shadow shaders.
+// Two-byte angle encoding avoids float-texture requirements on mobile WebGL 1.
+function createLeafGuard(flat){
+ const size=256,rows=flat?1:25,data=new Uint8Array(size*rows*4);
+ const map=new T.DataTexture(data,size,rows,T.RGBAFormat,T.UnsignedByteType);
+ map.minFilter=map.magFilter=T.NearestFilter;map.generateMipmaps=false;map.needsUpdate=true;
+ const inverse={value:new T.Matrix4()},origin={value:0},enabled={value:0};
+ function update(xs,ys,count,columns,extent,lift){
+  origin.value=lift;
+  for(let col=0;col<rows;col++){
+   const off=Math.min(col,columns-1)*count;let j=0;
+   for(let i=0;i<size;i++){
+    const radius=(i+.5)/size*extent;
+    while(j<count-2&&Math.hypot(xs[off+j+1],ys[off+j+1]-lift)<radius)j++;
+    const ax=xs[off+j],ay=ys[off+j]-lift,bx=xs[off+j+1],by=ys[off+j+1]-lift,dx=bx-ax,dy=by-ay;
+    const aa=dx*dx+dy*dy,bb=2*(ax*dx+ay*dy),cc=ax*ax+ay*ay-radius*radius;
+    const t=clamp((-bb+Math.sqrt(Math.max(0,bb*bb-4*aa*cc)))/(2*aa),0,1);
+    const angle=Math.max(0,Math.min(PI,Math.atan2(ay+dy*t,ax+dx*t))),q=Math.round(angle/PI*65535),k=(col*size+i)*4;
+    data[k]=q>>8;data[k+1]=q&255;data[k+2]=0;data[k+3]=255;
+   }
+  }
+  map.needsUpdate=true;
+ }
+ function bind(group,side,active){
+  book.updateWorldMatrix(true,false);inverse.value.copy(book.matrixWorld).invert();enabled.value=active?1:0;
+  let state=group.userData.curvedLeaf;
+  if(!state){
+   state=group.userData.curvedLeaf={side:{value:side}};
+   const attach=m=>{if(!m)return;const previous=m.onBeforeCompile,key=m.customProgramCacheKey();
+    m.onBeforeCompile=shader=>{
+     if(previous)previous.call(m,shader);
+     Object.assign(shader.uniforms,{uLeafMap:{value:map},uLeafInverse:inverse,uLeafOrigin:origin,uLeafEnabled:enabled,uLeafSide:state.side});
+     shader.vertexShader='uniform mat4 uLeafInverse; varying vec3 vLeafPoint;\n'+shader.vertexShader;
+     shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvLeafPoint=(uLeafInverse*modelMatrix*vec4(transformed,1.0)).xyz;');
+     shader.fragmentShader='uniform sampler2D uLeafMap; uniform float uLeafOrigin,uLeafEnabled,uLeafSide; varying vec3 vLeafPoint;\n'+shader.fragmentShader;
+     const test=flat
+      ?'vec2 q=vec2(vLeafPoint.x,vLeafPoint.y-uLeafOrigin);float row=0.5;'
+      :'vec2 q=vec2(vLeafPoint.z,vLeafPoint.y-uLeafOrigin);float row=clamp(vLeafPoint.x/7.6+0.5,0.0,1.0);';
+     const code=`if(uLeafEnabled>0.5&&abs(vLeafPoint.${flat?'z':'x'})<${flat?'5.7':'3.82'}){${test}
+      vec2 leafPacked=texture2D(uLeafMap,vec2(clamp(length(q)/${flat?'3.8':'5.5'},0.0,1.0),row)).rg;
+      float a=(leafPacked.r*65280.0+leafPacked.g*255.0)/65535.0*3.14159265359;
+      float side=dot(vec2(-sin(a),cos(a)),q);
+      if(uLeafSide*side<0.018)discard;
+     }`;
+     shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\n'+code);
+    };m.customProgramCacheKey=()=>key+'-curved-leaf-v1-'+flat;m.needsUpdate=true;
+   };
+   const seen=new Set();group.traverse(o=>{for(const m of [...(Array.isArray(o.material)?o.material:[o.material]),o.customDepthMaterial])if(m&&!seen.has(m)){seen.add(m);attach(m);}});
+  }
+  state.side.value=side;
+ }
+ return {update,bind};
+}
+
 function containConstruction(group,angle,lower,upper){
  if(angle<.012){group.visible=false;return;}
  group.updateWorldMatrix(true,false);
@@ -1273,6 +1327,7 @@ function observeBookSize(resize){
  resize();
 }
 function installSettings(getCurrent,isBusy){
+let layoutEdited=false;
 BOOK_CONFIG.scenes.forEach((s,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=s.title;$('settingScene').append(option);});
 function refreshSettingOutputs(){
  $('foldAngle').disabled=$('openingMode').value!=='180';$('foldAngleOutput').textContent=$('foldAngle').value+'°';
@@ -1287,19 +1342,48 @@ function refreshSettingOutputs(){
  $('offsetOutput').textContent=Number($('layerOffset').value).toFixed(2)+' cm';
  $('offsetHint').textContent='Đẩy cả cụm về phía người xem, giữ nguyên khoảng cách. Tối đa '+limit.toFixed(2)+' cm để giấy gập vừa trang.';
 }
-function readSceneSettings(){
+function readSceneSettings(){layoutEdited=false;
  const index=Number($('settingScene').value),layers=BOOK_CONFIG.scenes[index].layers;
  const depths=layers.map(l=>l.depth).sort((a,b)=>a-b),average=depths.length>1?(depths[depths.length-1]-depths[0])/(depths.length-1)*5:2;
  $('foldAngle').value=String(BOOK_CONFIG.scenes[index].foldAngle||140);$('viewZoom').value=VIEW_SETTINGS.zoom;$('viewAzimuth').value=VIEW_SETTINGS.azimuth;$('viewElevation').value=VIEW_SETTINGS.elevation;$('layerCount').value=String(layers.length);$('layerGap').max=String(maxGapCm(layers.length));$('layerGap').value=String(savedLayouts[index]?.gap??average);$('layerOffset').max='30';$('layerOffset').value=String(savedLayouts[index]?.offset||0);$('settingsStatus').textContent='';refreshSettingOutputs();
 }
 $('settingsBtn').onclick=()=>{if(isBusy())return;$('settingScene').value=String(clamp(getCurrent()-1,0,BOOK_CONFIG.scenes.length-1));$('openingMode').value=BOOK_MODE;readSceneSettings();refreshMechanismHint();$('layerSettings').showModal();};
 $('closeSettings').onclick=()=>$('layerSettings').close();$('settingScene').onchange=readSceneSettings;
-$('layerCount').oninput=refreshSettingOutputs;$('layerGap').oninput=refreshSettingOutputs;$('layerOffset').oninput=refreshSettingOutputs;for(const id of ['foldAngle','viewZoom','viewAzimuth','viewElevation'])$(id).oninput=refreshSettingOutputs;
+for(const id of ['layerCount','layerGap','layerOffset','foldAngle'])$(id).oninput=()=>{layoutEdited=true;refreshSettingOutputs();};for(const id of ['viewZoom','viewAzimuth','viewElevation'])$(id).oninput=refreshSettingOutputs;
 function saveLayout(reset=false){
  const index=Number($('settingScene').value);if(reset)delete savedLayouts[index];else savedLayouts[index]={count:Number($('layerCount').value),gap:Number($('layerGap').value),offset:Number($('layerOffset').value),foldAngle:Number($('foldAngle').value)};
  try{localStorage.setItem(VIEW_KEY,JSON.stringify({zoom:Number($('viewZoom').value),azimuth:Number($('viewAzimuth').value),elevation:Number($('viewElevation').value)}));localStorage.setItem(MODE_KEY,$('openingMode').value);localStorage.setItem(SETTINGS_KEY,JSON.stringify(savedLayouts));sessionStorage.setItem('popup-book-return-scene',String(index+1));location.reload();}
  catch(e){$('settingsStatus').textContent='Không thể lưu cài đặt. Hãy cho phép trình duyệt lưu dữ liệu của trang này.';}
 }
+function collectExportSettings(){
+ const scenes=BOOK_CONFIG.scenes.map(s=>({...s,layers:s.layers.map(l=>({...l}))}));
+ const selected=Number($('settingScene').value),mode=$('openingMode').value;
+ const overrides={...savedLayouts,...(layoutEdited?{[selected]:{count:Number($('layerCount').value),gap:Number($('layerGap').value),offset:Number($('layerOffset').value),foldAngle:Number($('foldAngle').value)}}:{})};
+ if(layoutEdited){const edit=overrides[selected];scenes[selected].layers=configuredLayers(selected,edit.count,edit.gap);scenes[selected].forwardOffset=edit.offset;scenes[selected].foldAngle=edit.foldAngle;}
+ const cm=n=>Math.round(n*5000)/1000;
+ return {
+  schema:'popup-book-settings',version:1,openingMode:mode,
+  view:{zoom:Number($('viewZoom').value),azimuth:Number($('viewAzimuth').value),elevation:Number($('viewElevation').value)},
+  units:{resolvedScenes:'cm',bookDimensions:'engine units',engineUnitsToCm:5,origin:'90: giữa gáy sau; 180: đầu gáy giữa hai trang',axes:{x:'sang phải',y:'lên khỏi trang',z:'về lề dưới'}},
+  theme:THEME,layoutOverrides:overrides,book:{...BOOK_CONFIG,scenes},
+  resolvedScenes:scenes.map((scene,i)=>({sceneId:`c${String(i+1).padStart(2,'0')}`,title:scene.title,layers:computeLayerLayout(scene,mode).layers.map((l,j,all)=>({
+   layerId:l.config.id||`c${String(i+1).padStart(2,'0')}-l${String(j+1).padStart(2,'0')}`,name:l.config.name,imageFile:l.config.imageFile||'',
+   anchorCm:{x:mode==='180'?0:cm(l.x),y:mode==='180'?.3:cm(.055+(all.length-j)*.037),z:cm(l.depth)},
+   widthCm:cm(l.width),heightCm:cm(l.height),...(mode==='180'?{wingLengthsCm:l.lengths.map(cm),foldAngle:scene.foldAngle||140}:{})
+  }))}))
+ };
+}
+function exportSettingsText(){
+ return JSON.stringify(collectExportSettings(),(key,value)=>{
+  if(typeof value!=='function')return value;
+  if(key!=='texture')return undefined;
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=1024;value(canvas.getContext('2d'),1024,1024);return canvas.toDataURL('image/png');
+ },2);
+}
+$('exportJson').onclick=()=>{try{$('jsonSettings').value=exportSettingsText();$('jsonPanel').hidden=false;$('jsonSettings').focus();$('jsonSettings').select();$('settingsStatus').textContent='JSON gồm cả các giá trị đang chỉnh, chưa cần bấm Áp dụng.';}catch(e){$('settingsStatus').textContent='Không xuất được JSON: '+e.message;}};
+$('copyJson').onclick=async()=>{try{await navigator.clipboard.writeText($('jsonSettings').value);$('settingsStatus').textContent='Đã sao chép JSON.';}catch(e){$('jsonSettings').focus();$('jsonSettings').select();$('settingsStatus').textContent='Hãy nhấn giữ vùng JSON hoặc Ctrl+C để sao chép.';}};
+$('downloadJson').onclick=()=>{const blob=new Blob([$('jsonSettings').value],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='sach-popup-settings.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+
 $('applyLayers').onclick=()=>saveLayout();$('resetLayers').onclick=()=>saveLayout(true);
 
 function refreshMechanismHint(){$('mechanismHint').textContent=$('openingMode').value==='180'?'Hai trang nằm phẳng; mỗi lớp gồm hai cánh giấy gấp chữ V, neo vào hai trang và gặp nhau tại gáy.':'Trang sau dựng gần thẳng đứng; các lớp gấp giữa trang sau và trang đang lật.';}
@@ -1355,6 +1439,7 @@ const uv=turnGeometry.attributes.uv;
 for(let i=0;i<uv.count;i++)uv.setXY(i,(rest[i*3]+W/2)/W,rest[i*3+2]/D);
 const turnTip=new T.Vector3(W/2-.16,.04,D-.12);
 // Reused integration buffers: no new geometries or arrays during dragging.
+const leafGuard=createLeafGuard(false);
 const CURVE_STEPS=64,CURVE_COLUMNS=24;
 const curveY=new Float64Array((CURVE_STEPS+1)*(CURVE_COLUMNS+1));
 const curveZ=new Float64Array(curveY.length),curveA=new Float64Array(curveY.length);
@@ -1468,6 +1553,7 @@ function deformPage(){
    const y=lerp(curveY[k],curveY[k+1],v),z=lerp(curveZ[k],curveZ[k+1],v),a=lerp(curveA[k],curveA[k+1],v);
    pos.setXYZ(i,x,y+off*Math.cos(a),z-off*Math.sin(a));
  }
+ leafGuard.update(curveZ,curveY,CURVE_STEPS+1,CURVE_COLUMNS+1,D,hingeLift);
  const k=CURVE_COLUMNS*(CURVE_STEPS+1)+CURVE_STEPS;
  turnTip.set(W/2-.16,curveY[k]+.04,curveZ[k]-.08);
  pos.needsUpdate=true;turnGeometry.computeVertexNormals();turnGeometry.computeBoundingSphere();pendingGeometry=false;
@@ -1534,7 +1620,7 @@ $('corner').addEventListener('pointerdown',dragStart);$('corner').addEventListen
 renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))<55)dragStart(e)},true);
 renderer.domElement.addEventListener('pointermove',dragMove);renderer.domElement.addEventListener('pointerup',e=>dragEnd(e));renderer.domElement.addEventListener('pointercancel',e=>dragEnd(e,true));
 function wake(){settledFrames=0;if(!document.hidden&&!raf){lastTime=performance.now();raf=requestAnimationFrame(tick)}}
-function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}if(pendingGeometry&&turnLeaf.visible)deformPage();renderLayers();backPivot.position.y=.03+.37*smooth(bookAngle/(OPEN*.18));if(cameraAuto){controls.enableDamping=false;bookCamera.pose(bookAngle/OPEN);if(!transition){cameraAuto=false;controls.enableDamping=!reduced;}}syncTimeline();for(const s of spreads)fadeConstruction(s.group,transition&&s===spreads[transition.from]?oldLayerOpacity(transition.p):1);for(const c of liveSpreads){const a=c.angle;containConstruction(c.spread.group,a,new T.Plane(new T.Vector3(0,1,0),-.016),new T.Plane(new T.Vector3(0,-Math.cos(a),Math.sin(a)),c.height*Math.cos(a)-c.z*Math.sin(a)-.016));}controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';stage.dataset.bookAngle=bookAngle.toFixed(6);stage.dataset.turnAngle=turnAngle.toFixed(6);stage.dataset.engine='single-leaf-v2';
+function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}if(pendingGeometry&&turnLeaf.visible)deformPage();renderLayers();backPivot.position.y=.03+.37*smooth(bookAngle/(OPEN*.18));if(cameraAuto){controls.enableDamping=false;bookCamera.pose(bookAngle/OPEN);if(!transition){cameraAuto=false;controls.enableDamping=!reduced;}}syncTimeline();for(const s of spreads)fadeConstruction(s.group,transition&&s===spreads[transition.from]?oldLayerOpacity(transition.p):1);for(const c of liveSpreads){const a=c.angle;containConstruction(c.spread.group,a,new T.Plane(new T.Vector3(0,1,0),-.016),new T.Plane(new T.Vector3(0,-Math.cos(a),Math.sin(a)),c.height*Math.cos(a)-c.z*Math.sin(a)-.016));leafGuard.bind(c.spread.group,c.ceiling?-1:1,!!transition&&!transition.cover);}controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';stage.dataset.bookAngle=bookAngle.toFixed(6);stage.dataset.turnAngle=turnAngle.toFixed(6);stage.dataset.engine='single-leaf-v2';
  // Adaptive resolution keeps the 2048 shadow map and reduces fill cost first.
  if(frameCount>120&&frameTime/frameCount>1/43&&renderer.getPixelRatio()>1){renderer.setPixelRatio(Math.max(1,renderer.getPixelRatio()-.25));renderer.setSize(stage.clientWidth,stage.clientHeight,false);frameCount=0;frameTime=0;}
  const moving=transition||drag||liveSpreads.some(c=>c.spread.layers.some(l=>Math.abs(l.velocity)>.002||Math.abs(l.angle-l.target)>.002));
@@ -1607,6 +1693,7 @@ function runFlatBook(){
  });
  const movingGeometry=pageGeometry.clone(),movingRest=movingGeometry.attributes.position.array.slice();
  const movingPage=new T.Mesh(movingGeometry,[edgeMat,edgeMat,plain,plain,edgeMat,edgeMat]);movingPage.castShadow=true;movingPage.receiveShadow=true;movingPage.visible=false;book.add(movingPage);
+ const flatGuard=createLeafGuard(true);
  const movingTip=new T.Vector3(PW,.04,D-.12),arcX=new Float64Array(65),arcY=new Float64Array(65),arcA=new Float64Array(65);
  const basis=new T.Matrix4(),normal=new T.Vector3(),axisX=new T.Vector3(),position=new T.Vector3();
  function posePanel(mesh,u,v,origin,length,side,offset=0){axisX.copy(u).multiplyScalar(side===0?-1:1);normal.crossVectors(axisX,v).normalize();basis.makeBasis(axisX,v,normal);mesh.quaternion.setFromRotationMatrix(basis);mesh.position.copy(origin).addScaledVector(u,length/2).addScaledVector(normal,offset);}
@@ -1631,6 +1718,7 @@ function runFlatBook(){
   for(let i=1;i<=64;i++){const u=(i-.5)/64,free=ease((u-.55)/.45),a=clamp(theta-envelope*1.05*free,0,PI);arcA[i]=a;arcX[i]=arcX[i-1]+Math.cos(a)*ds;arcY[i]=arcY[i-1]+Math.sin(a)*ds;}
   const p=movingGeometry.attributes.position;
   for(let i=0;i<p.count;i++){const u=clamp(movingRest[i*3]/PW,0,1)*64,j=Math.min(63,Math.floor(u)),f=u-j,off=movingRest[i*3+1],a=lerp(arcA[j],arcA[j+1],f);p.setXYZ(i,lerp(arcX[j],arcX[j+1],f)-off*Math.sin(a),lerp(arcY[j],arcY[j+1],f)+off*Math.cos(a),movingRest[i*3+2]);}
+  flatGuard.update(arcX,arcY,65,1,PW,.025);
   p.needsUpdate=true;movingGeometry.computeVertexNormals();movingGeometry.computeBoundingSphere();movingTip.set(arcX[64],arcY[64]+.03,D-.12);
  }
  function show(indexToShow){
@@ -1687,7 +1775,7 @@ function runFlatBook(){
  $('corner').addEventListener('pointerdown',down);$('corner').addEventListener('pointermove',move);$('corner').addEventListener('pointerup',e=>up(e));$('corner').addEventListener('pointercancel',e=>up(e,true));$('corner').onclick=e=>{if(e.detail===0)begin(index===entries.length-1?index-1:index+1)};
  renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))<52)down(e)},true);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',e=>up(e));renderer.domElement.addEventListener('pointercancel',e=>up(e,true));
  function wakeFlat(){idle=0;if(!document.hidden&&!frame){last=performance.now();frame=requestAnimationFrame(tickFlat)}}
- function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);if(camAuto){controls.enableDamping=false;camFlat.pose(openAngle/PI);if(!motion){camAuto=false;controls.enableDamping=!reduced;}}syncFlatTimeline();for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);for(const r of rigs)fadeConstruction(r.group,motion&&r===rigs[motion.from]?oldLayerOpacity(motion.p):1);for(const c of visibleRigs){const a=c.rotation,b=a+c.beta,n0=new T.Vector3(-Math.sin(a),Math.cos(a),0),n1=new T.Vector3(Math.sin(b),-Math.cos(b),0);containConstruction(c.rig.group,c.beta,new T.Plane(n0,-ROOT*n0.y-.01),new T.Plane(n1,-ROOT*n1.y-.01));}controls.update();
+ function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);if(camAuto){controls.enableDamping=false;camFlat.pose(openAngle/PI);if(!motion){camAuto=false;controls.enableDamping=!reduced;}}syncFlatTimeline();for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);for(const r of rigs)fadeConstruction(r.group,motion&&r===rigs[motion.from]?oldLayerOpacity(motion.p):1);for(const c of visibleRigs){const a=c.rotation,b=a+c.beta,n0=new T.Vector3(-Math.sin(a),Math.cos(a),0),n1=new T.Vector3(Math.sin(b),-Math.cos(b),0);containConstruction(c.rig.group,c.beta,new T.Plane(n0,-ROOT*n0.y-.01),new T.Plane(n1,-ROOT*n1.y-.01));flatGuard.bind(c.rig.group,c.rotation>0?1:-1,!!motion&&!motion.cover);}controls.update();
   const point=motion&&!motion.cover?movingTip.clone():new T.Vector3(PW-.1,.1,D-.1);book.localToWorld(point);point.project(camera);
   $('corner').style.transform=`translate(${clamp((point.x*.5+.5)*stage.clientWidth-22,4,stage.clientWidth-48)}px,${clamp((-point.y*.5+.5)*stage.clientHeight-22,4,stage.clientHeight-48)}px)`;$('corner').style.visibility=motion&&!held?'hidden':'visible';
   stage.dataset.engine='vfold-180-v1';stage.dataset.bookAngle=openAngle.toFixed(6);stage.dataset.turnAngle=theta.toFixed(6);stage.dataset.progress=motion?motion.p.toFixed(4):'idle';stage.dataset.layers=String(currentRig.layers.length);
