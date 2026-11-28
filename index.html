@@ -65,8 +65,11 @@ const BOOK_CONFIG = {
   ]
 };
 BOOK_CONFIG.scenes[0]={"title":"Góc sân nhà","text":"","artScene":true,"artRevision":3,"foldAngle":160,"background":{"texture":null,"color":"#f4e7e3"},"layers":[{"id":"c01-house","name":"Ngôi nhà và cửa sổ","texture":SCENE_ONE_ART.house,"textureCrop":[0,0.025,1,0.975],"width":6.65,"height":4.32,"x":0,"depth":0.32,"tabHeight":0.2,"delay":0,"stiffness":160},{"id":"c01-tree","name":"Cây lớn và tán lá","texture":SCENE_ONE_ART.tree,"cutout":true,"width":7.35,"height":5.25,"x":0.12,"depth":0.6,"tabHeight":0.22,"tabAnchor":0.88,"tabWidth":0.13,"delay":0.07,"stiffness":145},{"id":"c01-pots","name":"Hai chậu cây","texture":SCENE_ONE_ART.pots,"cutout":true,"width":0.95,"height":0.79,"x":-0.15,"depth":1.46,"tabHeight":0.15,"delay":0.14,"stiffness":120},{"id":"c01-bush","name":"Bụi cây bên trái","texture":SCENE_ONE_ART.bush,"cutout":true,"width":1.45,"height":0.88,"x":-2.35,"depth":1.94,"tabHeight":0.16,"delay":0.2,"stiffness":110},{"id":"c01-fence","name":"Tường rào và lối vào","texture":SCENE_ONE_ART.fence,"cutout":true,"width":6.65,"height":1.12,"x":0,"depth":2.68,"tabHeight":0.18,"delay":0.26,"stiffness":100}]};
+// Twenty editable reserve pages, after the existing illustrated scenes.
+BOOK_CONFIG.reservePageCount=20;
+for(let i=0;i<BOOK_CONFIG.reservePageCount;i++)BOOK_CONFIG.scenes.push({id:'reserve-'+(i+1),title:'Trang dự bị '+String(i+1).padStart(2,'0'),text:'',reserved:true,background:{texture:null,color:'#eee4ce'},layers:[]});
 const THEME = {
-  paper:'#eeeae0', table:'#f3f2eb', edge:'#fffdf5', cover:'#233b50', gilt:'#c7a566', binding:'#172d42', ink:'#304549', font:'Arial, sans-serif',
+  paper:'#eeeae0', table:'#f3f2eb', edge:'#fffdf5', cover:'#704020', gilt:'#d6b46d', binding:'#472511', ink:'#304549', font:'Arial, sans-serif',
   placeholder:['#b9cbd0','#c9c4b8','#aebdb6','#bac2ca'],
   light:{ui:'#f4f5f3',ink:'#283b3c',panel:'#fffffff0',line:'#d3ddda',accent:'#356b63',muted:'#627471'},
   dark:{ui:'#182322',ink:'#e1ebe6',panel:'#243431f5',line:'#41544f',accent:'#5c8b7d',muted:'#b0c3bc'}
@@ -1179,7 +1182,7 @@ const controls=new T.OrbitControls(camera,renderer.domElement);controls.enablePa
 const hemi=new T.HemisphereLight(0xf6fbff,0xb9b5a7,.85);scene.add(hemi);
 const sun=new T.DirectionalLight(0xfff9ea,1.6);sun.position.set(-6,11,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9,near:1,far:35});sun.shadow.bias=-.00022;sun.shadow.normalBias=.018;sun.shadow.radius=3;sun.target.position.set(0,1,2);scene.add(sun,sun.target);
 const fill=new T.DirectionalLight(0xffdfc0,.25);fill.position.set(6,4,3);scene.add(fill);
-const book=new T.Group();book.position.y=.25;book.rotation.x=-.025;scene.add(book);
+const book=new T.Group();book.position.y=.65;book.rotation.x=-.025;scene.add(book);
 const W=7.6,D=5.5,THICK=.03,OPEN=PI*98/180,EPS=.012;
 const geoCache=new Map(),ownedTextures=[];
 function paperGeometry(w,h,th=THICK){const key=[w,h,th].join(':');if(geoCache.has(key))return geoCache.get(key);const s=new T.Shape();s.moveTo(-w/2,0);s.lineTo(w/2,0);s.lineTo(w/2,h);s.lineTo(-w/2,h);s.closePath();const g=new T.ExtrudeGeometry(s,{depth:th,bevelEnabled:false,steps:1});g.translate(0,0,-th/2);const p=g.attributes.position,u=g.attributes.uv;for(let i=0;i<p.count;i++)u.setXY(i,(p.getX(i)+w/2)/w,p.getY(i)/h);u.needsUpdate=true;geoCache.set(key,g);return g;}
@@ -1189,21 +1192,29 @@ function courtyard(ctx,w,h){ctx.fillStyle='#e5c5a2';ctx.fillRect(0,0,w,h);const 
 function wrap(ctx,text,width){const lines=[];for(const para of String(text||'').split('\n')){let line='';for(const word of para.split(/\s+/)){const test=line?line+' '+word:word;if(ctx.measureText(test).width>width&&line){lines.push(line);line=word;}else line=test;}lines.push(line);}return lines;}
 function textBlock(ctx,text,x,y,width,height,size=30,center=false){let lines;do{ctx.font=`${size}px ${THEME.font}`;lines=wrap(ctx,text,width);if(lines.length*size*1.45<=height)break;size--;}while(size>12);ctx.textAlign=center?'center':'left';ctx.textBaseline='top';lines.forEach((l,i)=>{if(i*size*1.45<height)ctx.fillText(l,center?x+width/2:x,y+i*size*1.45)});}
 function texture(source,draw,crop=null){if(typeof source==='function')return canvasTexture(source);const tx=canvasTexture(draw);if(typeof source==='string'&&/^data:image\//i.test(source)){const im=new Image();im.onload=()=>{const c=tx.image,ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);if(crop)ctx.drawImage(im,crop[0]*im.width,crop[1]*im.height,crop[2]*im.width,crop[3]*im.height,0,0,c.width,c.height);else ctx.drawImage(im,0,0,c.width,c.height);tx.userData.imageReady=true;tx.needsUpdate=true;for(const ready of tx.userData.readyCallbacks||[])ready();requestRender()};im.onerror=()=>console.warn('Texture data URI không hợp lệ; giữ placeholder.');im.src=source;}return tx;}
+function leatherGround(ctx,w,h,color=THEME.cover){
+ ctx.fillStyle=color;ctx.fillRect(0,0,w,h);let seed=8917;
+ for(let i=0;i<18000;i++){seed=(seed*16807)%2147483647;const x=seed%w;seed=(seed*16807)%2147483647;const y=seed%h;ctx.fillStyle=i%2?'rgba(255,191,108,.055)':'rgba(29,10,4,.10)';ctx.fillRect(x,y,1+seed%3,1+seed%2);}
+}
+function goldRosette(ctx,x,y,r){
+ ctx.save();ctx.translate(x,y);ctx.strokeStyle=THEME.gilt;ctx.fillStyle=THEME.gilt;ctx.lineWidth=1.6;
+ for(let i=0;i<8;i++){ctx.rotate(Math.PI/4);ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(r*.7,-r*.4,r*.8,r*.6,0,r);ctx.bezierCurveTo(-r*.5,r*.5,-r*.4,r*.1,0,0);ctx.stroke();}
+ ctx.beginPath();ctx.arc(0,0,r*.13,0,Math.PI*2);ctx.fill();ctx.restore();
+}
 function coverFrame(ctx,w,h){
- const m=Math.min(w,h)*.035,k=Math.min(w,h)*.085;
- ctx.save();ctx.strokeStyle=THEME.gilt;ctx.fillStyle=THEME.gilt;ctx.lineWidth=Math.max(2,w*.002);
- ctx.strokeRect(m,m,w-2*m,h-2*m);ctx.globalAlpha=.65;ctx.lineWidth=Math.max(1,w*.001);ctx.strokeRect(m*1.3,m*1.3,w-2.6*m,h-2.6*m);ctx.globalAlpha=1;
- for(const [x,y,sx,sy]of [[m,m,1,1],[w-m,m,-1,1],[m,h-m,1,-1],[w-m,h-m,-1,-1]]){
-  ctx.save();ctx.translate(x,y);ctx.scale(sx,sy);ctx.beginPath();ctx.moveTo(k,0);ctx.bezierCurveTo(k*.1,k*.05,k*.15,k*.2,k*.16,k*.72);ctx.bezierCurveTo(k*.4,k*.55,k*.52,k*.25,k*.28,k*.25);ctx.bezierCurveTo(k*.08,k*.28,k*.38,k*.48,k*.72,k*.16);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(k*.33,k*.33);ctx.quadraticCurveTo(k*.28,k*.6,k*.52,k*.52);ctx.quadraticCurveTo(k*.6,k*.28,k*.33,k*.33);ctx.fill();ctx.restore();
- }
+ const m=Math.min(w,h)*.025,k=Math.min(w,h)*.10,b=Math.min(w,h)*.075;
+ ctx.save();ctx.fillStyle=THEME.cover;ctx.fillRect(0,0,w,b);ctx.fillRect(0,h-b,w,b);ctx.fillRect(0,0,b,h);ctx.fillRect(w-b,0,b,h);
+ ctx.strokeStyle=THEME.gilt;
+ for(const inset of [m,m*1.4,b*.86]){ctx.lineWidth=inset===m?3:1.5;ctx.strokeRect(inset,inset,w-2*inset,h-2*inset);}
+ for(const [x,y]of [[b,b],[w-b,b],[b,h-b],[w-b,h-b]])goldRosette(ctx,x,y,k*.36);
+ for(let x=b*2;x<w-b*1.5;x+=b*.48){ctx.beginPath();ctx.ellipse(x,b*.45,b*.09,b*.19,Math.PI/4,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(x,h-b*.45,b*.09,b*.19,-Math.PI/4,0,Math.PI*2);ctx.stroke();}
  ctx.restore();
 }
 function illustratedCover(s,aspect){
  const height=1280,width=Math.round(height*aspect);
  let loaded=null;
  const draw=(ctx,w,h)=>{
-  ctx.fillStyle=s.backgroundColor||'#f7e4d6';ctx.fillRect(0,0,w,h);
+  leatherGround(ctx,w,h);
   const wide=aspect>1;
   if(loaded){const scale=wide?h/loaded.height:Math.max(w/loaded.width,h/loaded.height),iw=loaded.width*scale,ih=loaded.height*scale;ctx.drawImage(loaded,wide?w-iw:(w-iw)/2,(h-ih)/2,iw,ih);}
   const cx=wide?w*.23:w*.46,area=wide?w*.39:w*.75,top=wide?h*.36:h*.235;
@@ -1219,12 +1230,16 @@ function illustratedCover(s,aspect){
  return tx;
 }
 function material(color,map=null,trans=false){return new T.MeshStandardMaterial({color,map,roughness:.85,metalness:0,bumpMap:noise,bumpScale:.009,transparent:trans,opacity:trans?.62:1,depthWrite:!trans,side:T.DoubleSide});}
-const edgeMat=material(THEME.edge),plain=material(THEME.paper),coverMat=material(THEME.cover);
+const leatherMap=canvasTexture((ctx,w,h)=>{leatherGround(ctx,w,h);coverFrame(ctx,w,h);goldRosette(ctx,w/2,h/2,h*.12);});
+const edgeMat=material(THEME.edge),plain=material(THEME.paper),coverMat=material('#ffffff',leatherMap);
 const giltMat=material(THEME.gilt);giltMat.metalness=.45;giltMat.roughness=.5;
-const bindingMap=canvasTexture((ctx,w,h)=>{ctx.fillStyle=THEME.binding;ctx.fillRect(0,0,w,h);ctx.strokeStyle=THEME.gilt;ctx.lineWidth=3;for(const y of [.06,.09,.25,.28,.72,.75,.91,.94]){ctx.beginPath();ctx.moveTo(0,y*h);ctx.lineTo(w,y*h);ctx.stroke();}},256,1024);
-const bindingMat=material(THEME.binding,bindingMap);
+const bindingMap=canvasTexture((ctx,w,h)=>{
+ leatherGround(ctx,w,h,THEME.binding);ctx.strokeStyle=THEME.gilt;
+ for(let i=0;i<6;i++){const y=i*h/6;ctx.lineWidth=3;ctx.strokeRect(w*.08,y+7,w*.84,h/6-14);ctx.lineWidth=1;ctx.strokeRect(w*.12,y+12,w*.76,h/6-24);goldRosette(ctx,w/2,y+h/12,Math.min(w*.28,h/18));}
+},256,1536);
+const bindingMat=material('#ffffff',bindingMap);
 function decorateSpine(mesh,length,radius){
- for(const t of [-.43,-.26,.26,.43]){const band=new T.Mesh(new T.TorusGeometry(radius+.006,.012,6,24),giltMat);band.rotation.x=PI/2;band.position.y=length*t;mesh.add(band);}
+ for(const t of [-.48,-.33,-.16,0,.16,.33,.48]){const band=new T.Mesh(new T.TorusGeometry(radius+.006,.012,6,24),giltMat);band.rotation.x=PI/2;band.position.y=length*t;mesh.add(band);}
 }
 
 // Build the thin paper edge around the alpha silhouette, including disconnected
@@ -1467,15 +1482,15 @@ $('openingMode').onchange=()=>{refreshMechanismHint();refreshSettingOutputs();};
 
 }
 if(BOOK_MODE==='180'){runFlatBook();return;}
-const baseCover=sheet(W+.22,D+.15,coverMat,.085);baseCover.rotation.x=PI/2;baseCover.position.set(0,-.12,-.03);book.add(baseCover);baseCover.material=[coverMat,giltMat];
+const baseCover=sheet(W+.22,D+.15,coverMat,.085);baseCover.rotation.x=PI/2;baseCover.position.set(0,-.48,-.03);book.add(baseCover);baseCover.material=[coverMat,giltMat];
 // Both fore-edge stacks remain visible; pages are thin extrusions, not a block.
-for(let i=0;i<7;i++){const p=sheet(W+.025*i,D+.015*i,plain,.012);p.rotation.x=PI/2;p.position.set((i-3)*.008,-.09+i*.012,0);book.add(p);}
+for(let i=0;i<27;i++){const p=sheet(W+.012*(i%3),D+.01*(i%3),plain,.014);p.rotation.x=PI/2;p.position.set((i%3-1)*.004,-.44+i*.016,0);book.add(p);}
 const base=sheet(W,D,plain);base.rotation.x=PI/2;book.add(base);
 const backPivot=new T.Group();backPivot.position.set(0,.40,0);book.add(backPivot);
-const backCover=sheet(W+.18,D+.1,coverMat,.075);backCover.position.z=-.085;backPivot.add(backCover);
-for(let i=0;i<6;i++){const p=sheet(W+i*.014,D+i*.009,plain,.009);p.position.set(-.015*i,0,-.02-i*.009);backPivot.add(p);}
+const backCover=sheet(W+.18,D+.1,coverMat,.075);backCover.position.z=-.43;backPivot.add(backCover);
+for(let i=0;i<26;i++){const p=sheet(W+.01*(i%3),D+.008*(i%3),plain,.014);p.position.set(-.004*(i%3),0,-.02-i*.016);backPivot.add(p);}
 const backdrop=sheet(W,D,plain);backPivot.add(backdrop);
-const spine=new T.Mesh(new T.CylinderGeometry(.12,.12,W+.1,16),bindingMat);spine.rotation.z=PI/2;spine.position.y=-.025;spine.castShadow=true;book.add(spine);decorateSpine(spine,W+.1,.12);
+const spine=new T.Mesh(new T.CylinderGeometry(.47,.47,W+.1,24),bindingMat);spine.rotation.z=PI/2;spine.position.y=-.025;spine.castShadow=true;book.add(spine);decorateSpine(spine,W+.1,.47);spine.scale.z=.38;spine.position.z=-.14;
 const contactMap=canvasTexture((ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,2,w/2,h/2,w/2);g.addColorStop(0,'rgba(29,39,37,.30)');g.addColorStop(1,'rgba(29,39,37,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)},128,128);
 const contactMat=new T.MeshBasicMaterial({map:contactMap,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
 const barAxis=new T.Vector3(0,1,0),barVector=new T.Vector3();
@@ -1696,7 +1711,7 @@ $('corner').addEventListener('pointerdown',dragStart);$('corner').addEventListen
 renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))<55)dragStart(e)},true);
 renderer.domElement.addEventListener('pointermove',dragMove);renderer.domElement.addEventListener('pointerup',e=>dragEnd(e));renderer.domElement.addEventListener('pointercancel',e=>dragEnd(e,true));
 function wake(){settledFrames=0;if(!document.hidden&&!raf){lastTime=performance.now();raf=requestAnimationFrame(tick)}}
-function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}if(pendingGeometry&&turnLeaf.visible)deformPage();renderLayers();backPivot.position.y=.03+.37*smooth(bookAngle/(OPEN*.18));if(cameraAuto){controls.enableDamping=false;bookCamera.pose(bookAngle/OPEN);if(!transition){cameraAuto=false;controls.enableDamping=!reduced;}}syncTimeline();for(const s of spreads)fadeConstruction(s.group,transition&&s===spreads[transition.from]?oldLayerOpacity(transition.p):1);for(const c of liveSpreads){const a=c.angle;containConstruction(c.spread.group,a,new T.Plane(new T.Vector3(0,1,0),-.016),new T.Plane(new T.Vector3(0,-Math.cos(a),Math.sin(a)),c.height*Math.cos(a)-c.z*Math.sin(a)-.016));leafGuard.bind(c.spread.group,c.ceiling?-1:1,!!transition&&!transition.cover);}controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';stage.dataset.bookAngle=bookAngle.toFixed(6);stage.dataset.turnAngle=turnAngle.toFixed(6);stage.dataset.engine='single-leaf-v2';
+function tick(now){raf=0;inFrame=true;const delta=Math.max(0,Math.min((now-lastTime)/1000,1));lastTime=now;elapsed+=delta;const steps=Math.max(1,Math.ceil(delta/(1/120)));for(let i=0;i<steps;i++){updateTransition(delta/steps);updateLayers(delta/steps);}if(pendingGeometry&&turnLeaf.visible)deformPage();renderLayers();spine.scale.x=1-.8*Math.sin(bookAngle/OPEN*PI/2);spine.position.y=-.38*Math.sin(bookAngle/OPEN*PI/2);backPivot.position.y=.03+.37*smooth(bookAngle/(OPEN*.18));if(cameraAuto){controls.enableDamping=false;bookCamera.pose(bookAngle/OPEN);if(!transition){cameraAuto=false;controls.enableDamping=!reduced;}}syncTimeline();for(const s of spreads)fadeConstruction(s.group,transition&&s===spreads[transition.from]?oldLayerOpacity(transition.p):1);for(const c of liveSpreads){const a=c.angle;containConstruction(c.spread.group,a,new T.Plane(new T.Vector3(0,1,0),-.016),new T.Plane(new T.Vector3(0,-Math.cos(a),Math.sin(a)),c.height*Math.cos(a)-c.z*Math.sin(a)-.016));leafGuard.bind(c.spread.group,c.ceiling?-1:1,!!transition&&!transition.cover);}controls.update();projectCorner();renderer.render(scene,camera);frameCount++;frameTime+=delta;stage.dataset.progress=transition?transition.p.toFixed(4):'idle';stage.dataset.target=transition?String(transition.target):'';stage.dataset.bookAngle=bookAngle.toFixed(6);stage.dataset.turnAngle=turnAngle.toFixed(6);stage.dataset.engine='single-leaf-v2';
  // Adaptive resolution keeps the 2048 shadow map and reduces fill cost first.
  if(frameCount>120&&frameTime/frameCount>1/43&&renderer.getPixelRatio()>1){renderer.setPixelRatio(Math.max(1,renderer.getPixelRatio()-.25));renderer.setSize(stage.clientWidth,stage.clientHeight,false);frameCount=0;frameTime=0;}
  const moving=transition||drag||liveSpreads.some(c=>c.spread.layers.some(l=>Math.abs(l.velocity)>.002||Math.abs(l.angle-l.target)>.002));
@@ -1734,10 +1749,10 @@ function runFlatBook(){
  for(let i=0;i<puv.count;i++)puv.setXY(i,positions.getX(i)/PW,positions.getZ(i)/D);
  function pageMesh(top,bottom=top,thick=false){const m=new T.Mesh(pageGeometry,[edgeMat,edgeMat,top,bottom,edgeMat,edgeMat]);if(thick){m.scale.y=4;m.material=[giltMat,giltMat,top,bottom,giltMat,giltMat];}m.castShadow=true;m.receiveShadow=true;return m;}
  const rightStack=new T.Group(),leftStack=new T.Group();book.add(rightStack,leftStack);leftStack.rotation.z=openAngle;
- const coverR=pageMesh(coverMat,coverMat,true),coverL=pageMesh(coverMat,coverMat,true);coverR.position.y=-.13;coverL.position.y=.13;rightStack.add(coverR);leftStack.add(coverL);
- for(let j=0;j<7;j++){const a=pageMesh(plain),b=pageMesh(plain);a.position.y=-.105+j*.014;b.position.y=-a.position.y;rightStack.add(a);leftStack.add(b);}
+ const coverR=pageMesh(coverMat,coverMat,true),coverL=pageMesh(coverMat,coverMat,true);coverR.position.y=-.48;coverL.position.y=.48;rightStack.add(coverR);leftStack.add(coverL);
+ for(let j=0;j<27;j++){const a=pageMesh(plain),b=pageMesh(plain);a.position.y=-.445+j*.016;b.position.y=-a.position.y;rightStack.add(a);leftStack.add(b);}
  const rightPage=pageMesh(plain),leftPage=pageMesh(plain);rightPage.position.y=.015;leftPage.position.y=-.015;rightStack.add(rightPage);leftStack.add(leftPage);
- const spineFlat=new T.Mesh(new T.CylinderGeometry(.07,.07,D+.10,12),bindingMat);spineFlat.rotation.x=PI/2;spineFlat.position.set(0,-.035,D/2);book.add(spineFlat);decorateSpine(spineFlat,D+.1,.07);
+ const spineFlat=new T.Mesh(new T.CylinderGeometry(.49,.49,D+.10,24),bindingMat);spineFlat.rotation.x=PI/2;spineFlat.position.set(0,-.035,D/2);book.add(spineFlat);decorateSpine(spineFlat,D+.1,.49);spineFlat.scale.x=.36;
  const flatContact=canvasTexture((ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(35,45,40,.23)');g.addColorStop(1,'rgba(35,45,40,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)},128,128);
  const contactMaterial=new T.MeshBasicMaterial({map:flatContact,transparent:true,depthWrite:false});
  function pageTexture(s,left){
@@ -1851,7 +1866,7 @@ function runFlatBook(){
  $('corner').addEventListener('pointerdown',down);$('corner').addEventListener('pointermove',move);$('corner').addEventListener('pointerup',e=>up(e));$('corner').addEventListener('pointercancel',e=>up(e,true));$('corner').onclick=e=>{if(e.detail===0)begin(index===entries.length-1?index-1:index+1)};
  renderer.domElement.addEventListener('pointerdown',e=>{const r=$('corner').getBoundingClientRect();if(Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))<52)down(e)},true);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',e=>up(e));renderer.domElement.addEventListener('pointercancel',e=>up(e,true));
  function wakeFlat(){idle=0;if(!document.hidden&&!frame){last=performance.now();frame=requestAnimationFrame(tickFlat)}}
- function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);if(camAuto){controls.enableDamping=false;camFlat.pose(openAngle/PI);if(!motion){camAuto=false;controls.enableDamping=!reduced;}}syncFlatTimeline();for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);for(const r of rigs)fadeConstruction(r.group,motion&&r===rigs[motion.from]?oldLayerOpacity(motion.p):1);for(const c of visibleRigs){const a=c.rotation,b=a+c.beta,n0=new T.Vector3(-Math.sin(a),Math.cos(a),0),n1=new T.Vector3(Math.sin(b),-Math.cos(b),0);containConstruction(c.rig.group,c.beta,new T.Plane(n0,-ROOT*n0.y-.01),new T.Plane(n1,-ROOT*n1.y-.01));flatGuard.bind(c.rig.group,c.rotation>0?1:-1,!!motion&&!motion.cover);}controls.update();
+ function tickFlat(now){frame=0;rendering=true;const dt=clamp((now-last)/1000,0,1);last=now;advance(dt);spineFlat.scale.z=1-.82*Math.sin(openAngle/2);if(camAuto){controls.enableDamping=false;camFlat.pose(openAngle/PI);if(!motion){camAuto=false;controls.enableDamping=!reduced;}}syncFlatTimeline();for(const c of visibleRigs)updateRig(c.rig,c.beta,c.rotation);for(const r of rigs)fadeConstruction(r.group,motion&&r===rigs[motion.from]?oldLayerOpacity(motion.p):1);for(const c of visibleRigs){const a=c.rotation,b=a+c.beta,n0=new T.Vector3(-Math.sin(a),Math.cos(a),0),n1=new T.Vector3(Math.sin(b),-Math.cos(b),0);containConstruction(c.rig.group,c.beta,new T.Plane(n0,-ROOT*n0.y-.01),new T.Plane(n1,-ROOT*n1.y-.01));flatGuard.bind(c.rig.group,c.rotation>0?1:-1,!!motion&&!motion.cover);}controls.update();
   const point=motion&&!motion.cover?movingTip.clone():new T.Vector3(PW-.1,.1,D-.1);book.localToWorld(point);point.project(camera);
   $('corner').style.transform=`translate(${clamp((point.x*.5+.5)*stage.clientWidth-22,4,stage.clientWidth-48)}px,${clamp((-point.y*.5+.5)*stage.clientHeight-22,4,stage.clientHeight-48)}px)`;$('corner').style.visibility=motion&&!held?'hidden':'visible';
   stage.dataset.engine='vfold-180-v1';stage.dataset.bookAngle=openAngle.toFixed(6);stage.dataset.turnAngle=theta.toFixed(6);stage.dataset.progress=motion?motion.p.toFixed(4):'idle';stage.dataset.layers=String(currentRig.layers.length);
